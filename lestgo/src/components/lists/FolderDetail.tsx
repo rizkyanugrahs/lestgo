@@ -7,6 +7,7 @@ import { styleFor } from "@/lib/categories";
 import { directionsUrl, linkLabel } from "@/lib/geo";
 import type { Idea } from "@/lib/types";
 import AddIdeaModal from "./AddIdeaModal";
+import AddMemoryModal from "../memories/AddMemoryModal";
 
 export type Folder = { id: string; title: string; description: string | null; category: string };
 
@@ -14,6 +15,7 @@ export default function FolderDetail({ folder, ideas, query, onBack, onChanged }
   folder: Folder; ideas: Idea[]; query: string; onBack: () => void; onChanged: () => void;
 }) {
   const [adding, setAdding] = useState(false);
+  const [logging, setLogging] = useState<Idea | null>(null);
   const { Icon, bg, text } = styleFor(folder.category);
 
   const shown = useMemo(() => {
@@ -27,6 +29,7 @@ export default function FolderDetail({ folder, ideas, query, onBack, onChanged }
   const toggleVisited = async (i: Idea) => {
     await supabase.from("ideas").update({ is_visited: !i.is_visited }).eq("id", i.id);
     onChanged();
+    if (!i.is_visited) setLogging(i); // baru ditandai dikunjungi -> tawarkan catat kenangan
   };
   const removeIdea = async (i: Idea) => {
     if (!window.confirm(`Hapus "${i.title}"?`)) return;
@@ -112,6 +115,16 @@ export default function FolderDetail({ folder, ideas, query, onBack, onChanged }
 
       <AnimatePresence>
         {adding && <AddIdeaModal folderId={folder.id} onClose={() => setAdding(false)} onSaved={onChanged} />}
+        {logging && (
+          <AddMemoryModal
+            prefill={{
+              place_name: logging.title, category: folder.category, photo_url: logging.cover_url,
+              place: logging.latitude !== null && logging.longitude !== null
+                ? { name: logging.location_name ?? "Lokasi", lat: logging.latitude, lng: logging.longitude } : null,
+            }}
+            onClose={() => setLogging(null)} onSaved={() => {}}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

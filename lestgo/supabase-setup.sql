@@ -68,3 +68,8 @@ CREATE POLICY "anon all" ON comfort_foods FOR ALL TO anon USING (true) WITH CHEC
 INSERT INTO storage.buckets (id, name, public) VALUES ('photos', 'photos', true) ON CONFLICT DO NOTHING;
 CREATE POLICY "anon upload" ON storage.objects FOR INSERT TO anon WITH CHECK (bucket_id = 'photos');
 CREATE POLICY "anon read"   ON storage.objects FOR SELECT TO anon USING (bucket_id = 'photos');
+-- Jalankan SEKALI di Supabase SQL Editor sebelum memakai Fase 3
+ALTER TABLE memories
+  ADD COLUMN IF NOT EXISTS category VARCHAR(50),
+  ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;

@@ -9,4 +9,5 @@ export type Idea = {
 export type Memory = {
   id: string; room_id: string; place_name: string; photo_url: string;
   visit_date: string; rating: number | null; notes: string | null; created_at: string;
+  category: string | null; latitude: number | null; longitude: number | null;
 };

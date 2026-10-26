@@ -1,0 +1,5 @@
+-- Jalankan SEKALI di Supabase SQL Editor sebelum memakai Fase 3
+ALTER TABLE memories
+  ADD COLUMN IF NOT EXISTS category VARCHAR(50),
+  ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
