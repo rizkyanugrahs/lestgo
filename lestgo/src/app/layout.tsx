@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { RoomProvider } from "@/components/RoomProvider";
 import AppShell from "@/components/AppShell";
+import { MeProvider } from "@/components/MeProvider";
 
 export const metadata: Metadata = {
   title: "LestGo",
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body className="bg-zinc-50 text-zinc-900 antialiased">
         <RoomProvider>
-          <AppShell>{children}</AppShell>
+          <MeProvider>
+            <AppShell>{children}</AppShell>
+          </MeProvider>
         </RoomProvider>
       </body>
     </html>

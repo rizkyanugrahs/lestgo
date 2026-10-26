@@ -1,4 +1,4 @@
-# LestGo (Fase 1 sampai 4)
+# LestGo (setelah refactor PRD)
 
 Cara pakai (tanpa install apa pun):
 1. Upload semua isi folder ini ke repository GitHub kamu.

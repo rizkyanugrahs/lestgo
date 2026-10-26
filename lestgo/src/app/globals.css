@@ -3,16 +3,3 @@
 html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
-
-/* ---- Peta (Leaflet) ---- */
-.leaflet-container { z-index: 0; font-family: inherit; background: #f3e8ff; }
-.leaflet-bottom { bottom: calc(env(safe-area-inset-bottom) + 5rem); }
-.lg-pin {
-  position: relative; width: 30px; height: 30px; border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg); border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .35);
-  transition: transform .15s;
-}
-.lg-pin::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #fff; }
-.lg-purple { background: #7c3aed; }
-.lg-green { background: #10b981; }
-.lg-pin.sel { transform: rotate(-45deg) scale(1.3); }
