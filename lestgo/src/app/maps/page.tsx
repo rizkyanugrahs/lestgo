@@ -1,3 +1,5 @@
-export default function Page() {
-  return <div className="px-5 pt-[calc(env(safe-area-inset-top)+1rem)] text-xl font-bold">Maps (menyusul di Fase 2)</div>;
+import MapsScreen from "@/components/maps/MapsScreen";
+
+export default function MapsPage() {
+  return <MapsScreen />;
 }
