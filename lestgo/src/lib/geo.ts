@@ -17,3 +17,25 @@ export function formatDistance(km: number) {
 
 export const directionsUrl = (lat: number, lng: number) =>
   `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+/** Ambil koordinat dari link Google Maps panjang (kalau ada). Link pendek (goo.gl) tidak bisa dibaca. */
+export function parseMapsLink(url: string): Coords | null {
+  const patterns = [
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+    /[?&](?:q|ll|query|destination)=(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  }
+  return null;
+}
+
+export function linkLabel(url: string): string | null {
+  const u = url.toLowerCase();
+  if (u.includes("tiktok.com")) return "TikTok";
+  if (u.includes("google.com/maps") || u.includes("goo.gl") || u.includes("maps.app")) return "Maps";
+  if (u.includes("instagram.com")) return "Instagram";
+  return "Link";
+}
