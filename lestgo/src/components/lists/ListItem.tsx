@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { CalendarClock, Check, ExternalLink, ListChecks, MapPin, Trash2 } from "lucide-react";
 import { linkLabel } from "@/lib/geo";
@@ -10,8 +10,8 @@ import type { Place } from "@/lib/types";
 const TRIGGER = 90;
 
 /** Swipe right = instant Done. Swipe left = instant Delete. No confirmation. */
-export default function ListItem({ place: p, onOpen, onSwipeRight, onSwipeLeft }: {
-  place: Place; onOpen: () => void; onSwipeRight: () => void; onSwipeLeft: () => void;
+function ListItem({ place: p, onOpen, onSwipeRight, onSwipeLeft }: {
+  place: Place; onOpen: (p: Place) => void; onSwipeRight: (p: Place) => void; onSwipeLeft: (p: Place) => void;
 }) {
   const controls = useAnimation();
   const dragged = useRef(false);
@@ -32,18 +32,18 @@ export default function ListItem({ place: p, onOpen, onSwipeRight, onSwipeLeft }
         drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.45} animate={controls}
         onDragStart={() => { dragged.current = true; }}
         onDragEnd={(_, info) => {
-          if (info.offset.x > TRIGGER) onSwipeRight();
-          else if (info.offset.x < -TRIGGER) onSwipeLeft();
+          if (info.offset.x > TRIGGER) onSwipeRight(p);
+          else if (info.offset.x < -TRIGGER) onSwipeLeft(p);
           controls.start({ x: 0, transition: { type: "spring", stiffness: 420, damping: 36 } });
           setTimeout(() => { dragged.current = false; }, 80);
         }}
-        className="relative flex gap-3 border border-white/60 bg-white/85 p-3 backdrop-blur-md"
+        className="relative flex gap-3 border border-zinc-100 bg-white p-3"
         style={{ touchAction: "pan-y" }}
       >
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${bg}`}><Icon className={`h-6 w-6 ${text}`} /></div>
 
         <div className="min-w-0 flex-1">
-          <button onClick={() => { if (!dragged.current) onOpen(); }} className="block w-full text-left">
+          <button onClick={() => { if (!dragged.current) onOpen(p); }} className="block w-full text-left">
             <h3 className="line-clamp-1 font-semibold">{p.title}</h3>
             {p.location_name && <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500"><MapPin className="h-3 w-3 shrink-0" /><span className="line-clamp-1">{p.location_name}</span></p>}
             {p.description && <p className="mt-0.5 line-clamp-1 text-xs text-zinc-400">{p.description}</p>}
@@ -71,3 +71,5 @@ export default function ListItem({ place: p, onOpen, onSwipeRight, onSwipeLeft }
     </li>
   );
 }
+
+export default memo(ListItem);

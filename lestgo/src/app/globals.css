@@ -7,7 +7,7 @@
   --color-wine-500: #ce0034;
 }
 
-/* Tombol utama, badge aktif, hero card: selalu gradasi, tidak pernah merah polos */
+/* Main buttons, active badges, hero cards: always a gradient, never flat red */
 @utility bg-brand {
   background-image: linear-gradient(135deg, #590016 0%, #800020 50%, #a7002a 100%);
 }
@@ -17,13 +17,18 @@
 @utility bg-danger {
   background-image: linear-gradient(270deg, #ce0034 0%, #a7002a 100%);
 }
-/* Efek Liquid Glass */
+/* Liquid glass (lighter blur keeps scrolling smooth on phones) */
 @utility glass {
   background-color: rgb(255 255 255 / 0.6);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgb(255 255 255 / 0.45);
   box-shadow: 0 8px 32px rgb(89 0 22 / 0.08);
+}
+/* Skip rendering of off-screen feed cards */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 540px;
 }
 
 html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
@@ -32,7 +37,7 @@ body {
   background-image:
     radial-gradient(50rem 28rem at 100% -8%, rgb(128 0 32 / 0.08), transparent 60%),
     radial-gradient(40rem 30rem at -25% 45%, rgb(206 0 52 / 0.05), transparent 60%);
-  background-attachment: fixed;
+  background-repeat: no-repeat;
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

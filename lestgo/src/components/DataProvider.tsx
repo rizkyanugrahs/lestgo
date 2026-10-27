@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
 import { DEFAULT_CATEGORIES } from "@/lib/categories";
@@ -43,30 +43,39 @@ export function DataProvider({ roomId, children }: { roomId: string; children: R
   );
 
   const settings = sq.data[0] ?? null;
-  const categories = settings?.categories && settings.categories.length ? settings.categories : DEFAULT_CATEGORIES;
-  const roomInfo: RoomInfo = {
-    anniversary_date: settings?.anniversary_date ?? null,
-    couple_photo_url: settings?.couple_photo_url ?? null,
-  };
+  const settingsCategories = settings?.categories ?? null;
+  const categories = useMemo(
+    () => (settingsCategories && settingsCategories.length ? settingsCategories : DEFAULT_CATEGORIES),
+    [settingsCategories]
+  );
+  const anniversary = settings?.anniversary_date ?? null;
+  const couplePhoto = settings?.couple_photo_url ?? null;
+  const roomInfo = useMemo<RoomInfo>(
+    () => ({ anniversary_date: anniversary, couple_photo_url: couplePhoto }),
+    [anniversary, couplePhoto]
+  );
 
   const refetchPlaces = pq.refetch, refetchFolders = fq.refetch, refetchSettings = sq.refetch;
-  const refetch = () => { refetchPlaces(); refetchFolders(); };
+  const refetch = useCallback(() => { refetchPlaces(); refetchFolders(); }, [refetchPlaces, refetchFolders]);
 
-  const saveSettings: Ctx["saveSettings"] = async (patch) => {
+  const saveSettings = useCallback<Ctx["saveSettings"]>(async (patch) => {
     const { error } = await supabase.from("room_settings").upsert({ room_id: roomId, ...patch });
     if (error) return error.message;
     await refetchSettings();
     return null;
-  };
+  }, [roomId, refetchSettings]);
 
-  return (
-    <DataContext.Provider value={{
-      places, folders: fq.data, loading: pq.loading || fq.loading,
-      error: pq.error ?? fq.error ?? sq.error, refetch, roomInfo, categories, saveSettings,
-    }}>
-      {children}
-    </DataContext.Provider>
+  const loading = pq.loading || fq.loading;
+  const error = pq.error ?? fq.error ?? sq.error;
+  const folders = fq.data;
+
+  // One memoized value: consumers only re-render when something they can see actually changed
+  const value = useMemo<Ctx>(
+    () => ({ places, folders, loading, error, refetch, roomInfo, categories, saveSettings }),
+    [places, folders, loading, error, refetch, roomInfo, categories, saveSettings]
   );
+
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
 
 export const useData = () => {

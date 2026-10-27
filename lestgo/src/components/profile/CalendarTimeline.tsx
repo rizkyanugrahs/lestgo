@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { MONTHS, fmtLong, todayStr } from "@/lib/dates";
 import { placeVisitDates } from "@/lib/places";
@@ -9,7 +9,7 @@ import { useData } from "../DataProvider";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
-export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => void }) {
+function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => void }) {
   const { places } = useData();
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
@@ -19,7 +19,8 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
   const byDate = useMemo(() => {
     const map = new Map<string, Place[]>();
     for (const p of places) for (const d of new Set(placeVisitDates(p))) {
-      map.set(d, [...(map.get(d) ?? []), p]);
+      const list = map.get(d);
+      if (list) list.push(p); else map.set(d, [p]);
     }
     return map;
   }, [places]);
@@ -29,7 +30,10 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const today = todayStr();
   const monthKey = `${y}-${pad(m + 1)}`;
-  const monthCount = Array.from(byDate.entries()).filter(([d]) => d.startsWith(monthKey)).reduce((s, [, v]) => s + v.length, 0);
+  const monthCount = useMemo(
+    () => Array.from(byDate.entries()).filter(([d]) => d.startsWith(monthKey)).reduce((s, [, v]) => s + v.length, 0),
+    [byDate, monthKey]
+  );
 
   const move = (delta: number) => {
     const d = new Date(y, m + delta, 1);
@@ -66,7 +70,7 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
                 className={`relative aspect-square overflow-hidden rounded-xl text-xs font-semibold ${list ? (photo ? "bg-zinc-200" : "bg-wine-700/15 text-wine-700") : "text-zinc-500"} ${ds === today ? "ring-2 ring-wine-600" : ""} ${selected === ds ? "ring-2 ring-wine-900" : ""}`}>
                 {photo && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={photo} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
                 )}
                 {photo && <span className="absolute inset-0 bg-black/25" />}
                 <span className={`relative ${photo ? "text-white drop-shadow" : ""}`}>{day}</span>
@@ -86,7 +90,7 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
             <button key={p.id} onClick={() => onOpen(p)} className="glass flex w-full items-center gap-3 rounded-2xl p-3 text-left">
               <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-wine-700/10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {p.photos[0] && <img src={p.photos[0]} alt="" className="h-full w-full object-cover" />}
+                {p.photos[0] && <img src={p.photos[0]} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />}
               </div>
               <span className="line-clamp-1 flex-1 font-semibold">{p.title}</span>
               {p.rating && <span className="flex items-center gap-1 text-xs font-semibold text-zinc-600"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{p.rating}</span>}
@@ -97,3 +101,5 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
     </section>
   );
 }
+
+export default memo(CalendarTimeline);

@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, FolderOpen, FolderPlus, ListPlus, Plus, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -47,28 +47,38 @@ export default function ListsScreen() {
       (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999") || +new Date(b.created_at) - +new Date(a.created_at)),
   [wishlist, category, q]);
 
-  const unhide = (id: string) => setHidden((h) => h.filter((x) => x !== id));
+  // Per-folder counts computed once instead of on every row render
+  const folderStats = useMemo(() => {
+    const m = new Map<string, { wish: number; visited: number }>();
+    for (const p of places) {
+      if (!p.folder_id) continue;
+      const s = m.get(p.folder_id) ?? { wish: 0, visited: 0 };
+      if (p.status === "wishlist") s.wish++; else s.visited++;
+      m.set(p.folder_id, s);
+    }
+    return m;
+  }, [places]);
 
-  const removePlace = async (p: Place) => {
+  const removePlace = useCallback(async (p: Place) => {
     setHidden((h) => [...h, p.id]);
     const { error } = await supabase.from("places").delete().eq("id", p.id);
-    if (error) { unhide(p.id); setError(placeError(error.message)); } else refetch();
-  };
+    if (error) { setHidden((h) => h.filter((x) => x !== p.id)); setError(placeError(error.message)); } else refetch();
+  }, [refetch]);
 
-  const donePlace = async (p: Place) => {
+  const donePlace = useCallback(async (p: Place) => {
     setHidden((h) => [...h, p.id]);
     const msg = await markVisitedNow(p, places);
-    if (msg) { unhide(p.id); setError(placeError(msg)); } else refetch();
-  };
+    if (msg) { setHidden((h) => h.filter((x) => x !== p.id)); setError(placeError(msg)); } else refetch();
+  }, [places, refetch]);
+
+  const openPlace = useCallback((p: Place) => setViewing(p.id), []);
 
   const openFolder = openId ? folders.find((f) => f.id === openId) ?? null : null;
   if (openFolder) return <FolderView folder={openFolder} onBack={() => setOpenId(null)} />;
 
   const stat = (id: string) => {
-    const mine = places.filter((p) => p.folder_id === id);
-    const wish = mine.filter((p) => p.status === "wishlist").length;
-    const visited = mine.length - wish;
-    return `${wish} place${wish === 1 ? "" : "s"}${visited ? ` · ${visited} visited` : ""}`;
+    const s = folderStats.get(id) ?? { wish: 0, visited: 0 };
+    return `${s.wish} place${s.wish === 1 ? "" : "s"}${s.visited ? ` · ${s.visited} visited` : ""}`;
   };
 
   const viewed = places.find((p) => p.id === viewing) ?? null;
@@ -133,8 +143,7 @@ export default function ListsScreen() {
                 <p className="text-xs text-zinc-400">Swipe right to mark done, swipe left to delete.</p>
                 <ul className="space-y-3">
                   {direct.map((p) => (
-                    <ListItem key={p.id} place={p} onOpen={() => setViewing(p.id)}
-                      onSwipeRight={() => donePlace(p)} onSwipeLeft={() => removePlace(p)} />
+                    <ListItem key={p.id} place={p} onOpen={openPlace} onSwipeRight={donePlace} onSwipeLeft={removePlace} />
                   ))}
                 </ul>
               </>

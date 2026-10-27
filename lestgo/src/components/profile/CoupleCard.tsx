@@ -1,9 +1,10 @@
 "use client";
+import { memo } from "react";
 import { Heart } from "lucide-react";
 import { togetherSince } from "@/lib/dates";
 import { useData } from "../DataProvider";
 
-export default function CoupleCard() {
+function CoupleCard() {
   const { roomInfo } = useData();
   const t = roomInfo.anniversary_date ? togetherSince(roomInfo.anniversary_date) : null;
 
@@ -22,7 +23,7 @@ export default function CoupleCard() {
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/60 bg-white/20">
           {roomInfo.couple_photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={roomInfo.couple_photo_url} alt="Couple photo" className="h-full w-full object-cover" />
+            <img src={roomInfo.couple_photo_url} alt="Couple photo" decoding="async" className="h-full w-full object-cover" />
           ) : <Heart className="h-8 w-8 fill-white text-white" />}
         </div>
         <div className="min-w-0">
@@ -32,10 +33,12 @@ export default function CoupleCard() {
               <p className="text-xs text-white/85">{parts.join(" ")} together</p>
             </>
           ) : (
-            <p className="text-sm font-semibold">Set your anniversary date in Settings (gear icon below) to start counting.</p>
+            <p className="text-sm font-semibold">Set your anniversary date in Settings (bar below) to start counting.</p>
           )}
         </div>
       </div>
     </section>
   );
 }
+
+export default memo(CoupleCard);

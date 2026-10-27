@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Check, Download, ExternalLink, Heart, Loader2, MapPin, Pencil, Repeat, RotateCcw, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { linkLabel } from "@/lib/geo";
 import { fmtLong, fmtShort } from "@/lib/dates";
-import { downloadPhoto, normName, placeMapsHref, placeVisitDates, resyncAfterRemoval } from "@/lib/places";
+import { downloadPhoto, placeMapsHref, placeVisitDates, resyncAfterRemoval, samePlace } from "@/lib/places";
 import { styleFor } from "@/lib/categories";
 import type { Place } from "@/lib/types";
 import BottomSheet from "../BottomSheet";
@@ -26,8 +26,11 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
   const folder = folders.find((f) => f.id === p.folder_id);
 
   // Every visit is its own entry, so the history combines the dates of all entries of this place
-  const related = isVisited ? places.filter((x) => x.status === "visited" && normName(x.title) === normName(p.title)) : [];
-  const history = Array.from(new Set(related.flatMap(placeVisitDates))).sort().reverse();
+  const history = useMemo(() => {
+    if (!isVisited) return [];
+    const related = places.filter((x) => x.status === "visited" && samePlace(x, p));
+    return Array.from(new Set(related.flatMap(placeVisitDates))).sort().reverse();
+  }, [isVisited, places, p]);
 
   const toggleItem = async (id: string) => {
     const next = p.checklist.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c));
@@ -70,7 +73,7 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
             {p.photos.map((u, i) => (
               <div key={u} className="relative h-[46dvh] shrink-0 snap-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={u} alt={p.title} className="aspect-[4/5] h-full max-w-none rounded-2xl bg-zinc-100 object-cover shadow-md" />
+                <img src={u} alt={p.title} decoding="async" className="aspect-[4/5] h-full max-w-none rounded-2xl bg-zinc-100 object-cover shadow-md" />
                 <button onClick={() => download(u, i)} aria-label="Download photo"
                   className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-black/45 text-white backdrop-blur">
                   {downloading === u ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
@@ -110,13 +113,24 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
 
         {p.checklist.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-zinc-500">Checklist</p>
-            {p.checklist.map((c) => (
-              <button key={c.id} onClick={() => toggleItem(c.id)} className="flex w-full items-center gap-3 rounded-2xl bg-white/60 px-3 py-2.5 text-left ring-1 ring-white/60">
-                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${c.completed ? "border-transparent bg-brand text-white" : "border-zinc-300 text-transparent"}`}><Check className="h-3.5 w-3.5" /></span>
-                <span className={`text-sm ${c.completed ? "text-zinc-400 line-through" : ""}`}>{c.text}</span>
-              </button>
-            ))}
+            <p className="text-sm font-medium text-zinc-500">{isVisited ? "Ordered / did" : "Things to try"}</p>
+            {isVisited ? (
+              // Visit log: a clean list of text items, no checkboxes
+              <ul className="space-y-1.5 rounded-2xl bg-white/60 px-4 py-3 ring-1 ring-white/60">
+                {p.checklist.map((c) => (
+                  <li key={c.id} className="flex items-center gap-3 text-sm">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-wine-700/50" />{c.text}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              p.checklist.map((c) => (
+                <button key={c.id} onClick={() => toggleItem(c.id)} className="flex w-full items-center gap-3 rounded-2xl bg-white/60 px-3 py-2.5 text-left ring-1 ring-white/60">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${c.completed ? "border-transparent bg-brand text-white" : "border-zinc-300 text-transparent"}`}><Check className="h-3.5 w-3.5" /></span>
+                  <span className={`text-sm ${c.completed ? "text-zinc-400 line-through" : ""}`}>{c.text}</span>
+                </button>
+              ))
+            )}
           </div>
         )}
 

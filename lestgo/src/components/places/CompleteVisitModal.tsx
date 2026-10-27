@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Heart, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { todayStr } from "@/lib/dates";
-import { placeError, syncVisitCount, totalVisitsFor, uploadMany } from "@/lib/places";
+import { photoItemsFrom, placeError, resolvePhotos, syncVisitCount, totalVisitsFor, type PhotoItem } from "@/lib/places";
 import type { Place } from "@/lib/types";
 import BottomSheet from "../BottomSheet";
 import Stars from "../Stars";
@@ -20,23 +20,23 @@ export default function CompleteVisitModal({ place, onClose, onSaved }: { place:
   const [rating, setRating] = useState(0);
   const [minus, setMinus] = useState(place.minus_notes ?? "");
   const [love, setLove] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
-  const [existing, setExisting] = useState<string[]>(place.photos);
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>(() => photoItemsFrom(place.photos));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const save = async () => {
     setBusy(true); setError(null);
     try {
-      const photos = files.length ? [...existing, ...(await uploadMany(files, roomId))] : existing;
-      const total = totalVisitsFor(places, place.title, place.id);
+      const photos = await resolvePhotos(photoItems, roomId);
+      // counts earlier visits by name, location name, or coordinates
+      const total = totalVisitsFor(places, place, place.id);
       const { error } = await supabase.from("places").update({
         status: "visited", visited_date: date, visit_dates: [date], visit_count: total,
         rating: rating || null, minus_notes: minus.trim() || null, photos,
         is_comfort_pick: love && !!me, comfort_pick_by: love ? me : null,
       }).eq("id", place.id);
       if (error) throw new Error(error.message);
-      await syncVisitCount(places, place.title, total, place.id);
+      await syncVisitCount(places, place, total, place.id);
       onSaved(); onClose();
     } catch (e) {
       setError(placeError(e instanceof Error ? e.message : "Something went wrong."));
@@ -50,7 +50,7 @@ export default function CompleteVisitModal({ place, onClose, onSaved }: { place:
         <p className="rounded-2xl bg-wine-700/10 px-4 py-3 text-sm text-wine-700">Complete the memory at <b>{place.title}</b>.</p>
         <div>
           <p className="mb-2 text-sm font-medium text-zinc-500">Photos</p>
-          <PhotoPicker existing={existing} onExistingChange={setExisting} files={files} onFilesChange={setFiles} />
+          <PhotoPicker items={photoItems} onChange={setPhotoItems} />
         </div>
         <div className="flex items-center justify-between gap-3">
           <div>

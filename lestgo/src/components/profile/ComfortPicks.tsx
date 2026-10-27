@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Dices, Star } from "lucide-react";
 import { fmtShort } from "@/lib/dates";
@@ -11,14 +11,14 @@ import BottomSheet from "../BottomSheet";
 import VisitBadge from "../VisitBadge";
 import GachaSheet from "./GachaSheet";
 
-function PickRow({ p, onOpen }: { p: Place; onOpen: (p: Place) => void }) {
+const PickRow = memo(function PickRow({ p, onOpen }: { p: Place; onOpen: (p: Place) => void }) {
   const { Icon, bg, text } = styleFor(p.category);
   return (
     <button onClick={() => onOpen(p)} className="glass flex w-full items-center gap-3 rounded-3xl p-3 text-left transition active:scale-[0.98]">
       <div className={`h-14 w-14 shrink-0 overflow-hidden rounded-2xl ${bg}`}>
         {p.photos[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.photos[0]} alt="" className="h-full w-full object-cover" />
+          <img src={p.photos[0]} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : <div className="flex h-full w-full items-center justify-center"><Icon className={`h-6 w-6 ${text}`} /></div>}
       </div>
       <div className="min-w-0 flex-1">
@@ -29,9 +29,9 @@ function PickRow({ p, onOpen }: { p: Place; onOpen: (p: Place) => void }) {
       {p.rating && <span className="flex items-center gap-1 text-xs font-semibold text-zinc-600"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{p.rating}</span>}
     </button>
   );
-}
+});
 
-export default function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void }) {
+function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void }) {
   const { places } = useData();
   const [tab, setTab] = useState<PersonKey>("kiky");
   const [all, setAll] = useState(false);
@@ -42,6 +42,8 @@ export default function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void })
     .filter((p) => p.is_comfort_pick && p.comfort_pick_by === tab)
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.visit_count - a.visit_count || (b.visited_date ?? "").localeCompare(a.visited_date ?? "")),
   [places, tab]);
+
+  const openFromAll = useCallback((x: Place) => { setAll(false); onOpen(x); }, [onOpen]);
 
   return (
     <section className="space-y-3">
@@ -69,15 +71,18 @@ export default function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void })
         </div>
       )}
 
-      <button onClick={() => setGacha(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white shadow-lg shadow-wine-700/25 transition active:scale-[0.98]">
-        <Dices className="h-5 w-5" /> Can&apos;t decide where to go / what to eat?
-      </button>
+      {/* Minimal spin trigger: one icon + short text */}
+      <div className="flex justify-center">
+        <button onClick={() => setGacha(true)}
+          className="flex items-center gap-2 rounded-full bg-white/80 px-5 py-2.5 text-sm font-semibold text-wine-700 ring-1 ring-wine-700/15 transition active:scale-95">
+          <Dices className="h-4 w-4" /> Spin random place
+        </button>
+      </div>
 
       <AnimatePresence>
         {all && (
           <BottomSheet title={`${ME_LABEL[tab]}'s Picks`} onClose={() => setAll(false)}>
-            <div className="space-y-3">{picks.map((p) => <PickRow key={p.id} p={p} onOpen={(x) => { setAll(false); onOpen(x); }} />)}</div>
+            <div className="space-y-3">{picks.map((p) => <PickRow key={p.id} p={p} onOpen={openFromAll} />)}</div>
           </BottomSheet>
         )}
         {gacha && <GachaSheet onClose={() => setGacha(false)} onOpen={(p) => { setGacha(false); onOpen(p); }} />}
@@ -85,3 +90,5 @@ export default function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void })
     </section>
   );
 }
+
+export default memo(ComfortPicks);

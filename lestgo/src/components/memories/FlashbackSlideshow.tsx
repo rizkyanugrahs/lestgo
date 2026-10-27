@@ -27,7 +27,7 @@ export default function FlashbackSlideshow({ items, onOpen }: { items: Place[]; 
           transition={{ duration: 0.8 }}>
           {p.photos[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.photos[0]} alt="" className="h-full w-full object-cover" />
+            <img src={p.photos[0]} alt="" decoding="async" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-brand"><Heart className="h-14 w-14 fill-white/20 text-white/20" /></div>
           )}

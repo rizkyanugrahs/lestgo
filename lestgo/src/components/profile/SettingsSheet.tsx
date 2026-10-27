@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Reorder, useDragControls } from "framer-motion";
-import { Camera, Check, Copy, GripVertical, Loader2, LogOut, Pencil, Plus, Trash2, X } from "lucide-react";
+import { AnimatePresence, Reorder, useDragControls } from "framer-motion";
+import { Camera, Check, Copy, GripVertical, Loader2, LogOut, Pencil, Plus, Share, Smartphone, Trash2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { uploadPhoto } from "@/lib/storage";
 import { placeError } from "@/lib/places";
@@ -11,6 +11,7 @@ import BottomSheet from "../BottomSheet";
 import { useData } from "../DataProvider";
 import { useRoom, useRoomId } from "../RoomProvider";
 import { ME_LABEL, useMe } from "../MeProvider";
+import PhotoCropper from "../places/PhotoCropper";
 
 const card = "rounded-3xl bg-white/60 p-4 ring-1 ring-white/60";
 const head = "mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400";
@@ -50,6 +51,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
   const { me, setMe } = useMe();
   const { roomInfo, categories, saveSettings, refetch } = useData();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +76,8 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
     setBusy(false);
   };
 
-  const changePhoto = (file: File) => run(async () => {
+  // The cropped (square) photo is uploaded and saved as the couple photo
+  const savePhoto = (file: File) => run(async () => {
     try { return await saveSettings({ couple_photo_url: await uploadPhoto(file, roomId) }); }
     catch (e) { return e instanceof Error ? e.message : "Couldn't change the photo."; }
   });
@@ -139,7 +142,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
 
         <div className={card}>
           <p className={head}>Couple photo</p>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) changePhoto(f); e.target.value = ""; }} />
+          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) setCropFile(f); e.target.value = ""; }} />
           <button onClick={() => fileRef.current?.click()} disabled={busy} className="flex w-full items-center gap-3 text-left">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand">
               {roomInfo.couple_photo_url ? (
@@ -190,12 +193,30 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
+        <div className={card}>
+          <p className={head}>Add to iPhone Home Screen</p>
+          <ol className="space-y-2.5 text-sm text-zinc-700">
+            <li className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">1</span><span>Open LestGo in <b>Safari</b> (it won&apos;t work from other browsers).</span></li>
+            <li className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">2</span><span className="flex flex-wrap items-center gap-1">Tap the <b>Share</b> button <Share className="inline h-4 w-4 text-wine-700" /> at the bottom of the screen.</span></li>
+            <li className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">3</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
+            <li className="flex gap-3"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">4</span><span>Tap <b>Add</b>. LestGo now opens like a normal app <Smartphone className="inline h-4 w-4 text-wine-700" /></span></li>
+          </ol>
+        </div>
+
         {error && <p className="rounded-2xl bg-wine-700/10 px-4 py-3 text-sm text-wine-600">{error}</p>}
 
         <button onClick={leave} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-wine-700/10 py-3 font-semibold text-wine-600">
           <LogOut className="h-4 w-4" /> Log out / switch room
         </button>
       </div>
+
+      <AnimatePresence>
+        {cropFile && (
+          <PhotoCropper aspect="1:1" file={cropFile}
+            onDone={(f) => { setCropFile(null); savePhoto(f); }}
+            onCancel={() => setCropFile(null)} />
+        )}
+      </AnimatePresence>
     </BottomSheet>
   );
 }

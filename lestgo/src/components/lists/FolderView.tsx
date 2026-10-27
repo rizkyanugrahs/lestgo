@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft, Pencil, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -27,19 +27,19 @@ export default function FolderView({ folder, onBack }: { folder: Folder; onBack:
       (a.planned_date ?? "9999").localeCompare(b.planned_date ?? "9999") || +new Date(b.created_at) - +new Date(a.created_at)),
   [places, folder.id, hidden]);
 
-  const unhide = (id: string) => setHidden((h) => h.filter((x) => x !== id));
-
-  const removePlace = async (p: Place) => {
+  const removePlace = useCallback(async (p: Place) => {
     setHidden((h) => [...h, p.id]);
     const { error } = await supabase.from("places").delete().eq("id", p.id);
-    if (error) { unhide(p.id); setError(placeError(error.message)); } else refetch();
-  };
+    if (error) { setHidden((h) => h.filter((x) => x !== p.id)); setError(placeError(error.message)); } else refetch();
+  }, [refetch]);
 
-  const donePlace = async (p: Place) => {
+  const donePlace = useCallback(async (p: Place) => {
     setHidden((h) => [...h, p.id]);
     const msg = await markVisitedNow(p, places);
-    if (msg) { unhide(p.id); setError(placeError(msg)); } else refetch();
-  };
+    if (msg) { setHidden((h) => h.filter((x) => x !== p.id)); setError(placeError(msg)); } else refetch();
+  }, [places, refetch]);
+
+  const openPlace = useCallback((p: Place) => setViewing(p.id), []);
 
   const removeFolder = async () => {
     if (!window.confirm(`Delete folder "${folder.title}"? The places inside are not deleted, they just move out of the folder.`)) return;
@@ -82,8 +82,7 @@ export default function FolderView({ folder, onBack }: { folder: Folder; onBack:
           <p className="mb-2 text-xs text-zinc-400">Swipe right to mark done, swipe left to delete.</p>
           <ul className="space-y-3">
             {items.map((p) => (
-              <ListItem key={p.id} place={p} onOpen={() => setViewing(p.id)}
-                onSwipeRight={() => donePlace(p)} onSwipeLeft={() => removePlace(p)} />
+              <ListItem key={p.id} place={p} onOpen={openPlace} onSwipeRight={donePlace} onSwipeLeft={removePlace} />
             ))}
           </ul>
         </>

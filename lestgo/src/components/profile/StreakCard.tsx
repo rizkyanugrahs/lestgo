@@ -1,11 +1,11 @@
 "use client";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { placeVisitDates } from "@/lib/places";
 import { todayStr } from "@/lib/dates";
 import { useData } from "../DataProvider";
 import FlamingHeart from "./FlamingHeart";
 
-export default function StreakCard() {
+function StreakCard() {
   const { places } = useData();
 
   // Only counts the current month, so it resets by itself on the 1st of every month
@@ -33,3 +33,5 @@ export default function StreakCard() {
     </section>
   );
 }
+
+export default memo(StreakCard);

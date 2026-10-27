@@ -4,7 +4,10 @@ import { Heart, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { styleFor } from "@/lib/categories";
 import { todayStr } from "@/lib/dates";
-import { latestDate, normName, placeError, syncVisitCount, totalVisitsFor, uploadMany } from "@/lib/places";
+import {
+  latestDate, normName, photoItemsFrom, placeError, resolvePhotos, syncVisitCount, totalVisitsFor,
+  type PhotoItem, type PlaceKey,
+} from "@/lib/places";
 import type { ChecklistItem, Place } from "@/lib/types";
 import BottomSheet from "../BottomSheet";
 import Stars from "../Stars";
@@ -45,8 +48,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
   const [rating, setRating] = useState(place?.rating ?? 0);
   const [minus, setMinus] = useState(place?.minus_notes ?? "");
   const [love, setLove] = useState(place?.is_comfort_pick ?? false);
-  const [existing, setExisting] = useState<string[]>(place?.photos ?? []);
-  const [files, setFiles] = useState<File[]>([]);
+  const [photoItems, setPhotoItems] = useState<PhotoItem[]>(() => photoItemsFrom(place?.photos ?? []));
   const [showSug, setShowSug] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,16 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
     return Array.from(byName.values()).slice(0, 5);
   }, [places, title, visited, editing]);
 
-  const priorVisits = visited && !editing && title.trim() ? totalVisitsFor(places, title) - 1 : 0;
+  // Earlier visits are detected by name, location name, or coordinates
+  const key: PlaceKey = useMemo(
+    () => ({ title, location_name: loc.name.trim() || null, latitude: loc.lat, longitude: loc.lng }),
+    [title, loc.name, loc.lat, loc.lng]
+  );
+  const priorVisits = useMemo(() => {
+    if (!visited || editing) return 0;
+    if (!title.trim() && loc.lat === null && !loc.name.trim()) return 0;
+    return totalVisitsFor(places, key) - 1;
+  }, [visited, editing, title, loc.lat, loc.name, places, key]);
 
   const pickSuggestion = (p: Place) => {
     setTitle(p.title);
@@ -91,7 +102,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
       let extra: Record<string, unknown>;
       let syncTotal: number | null = null;
       if (visited) {
-        const photos = files.length ? [...existing, ...(await uploadMany(files, roomId))] : existing;
+        const photos = await resolvePhotos(photoItems, roomId); // keeps the order you arranged
         const by = love ? (place?.is_comfort_pick && place.comfort_pick_by ? place.comfort_pick_by : me) : null;
 
         let dates = [...(place?.visit_dates ?? [])];
@@ -102,8 +113,8 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
           if (idx >= 0) dates[idx] = visitedDate; else dates.push(visitedDate);
         }
 
-        // A new visit is always a NEW entry; visit_count is the running total for this place name
-        const total = editing ? Math.max(place!.visit_count, dates.length) : totalVisitsFor(places, title);
+        // A new visit is always a NEW entry; visit_count is the running total for this place
+        const total = editing ? Math.max(place!.visit_count, dates.length) : totalVisitsFor(places, key);
         if (!editing) syncTotal = total;
 
         extra = {
@@ -118,7 +129,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
         ? await supabase.from("places").update({ ...base, ...extra }).eq("id", place!.id)
         : await supabase.from("places").insert({ room_id: roomId, ...base, ...extra });
       if (res.error) throw new Error(res.error.message);
-      if (syncTotal !== null) await syncVisitCount(places, title, syncTotal);
+      if (syncTotal !== null) await syncVisitCount(places, key, syncTotal);
       onSaved(); onClose();
     } catch (e) {
       setError(placeError(e instanceof Error ? e.message : "Something went wrong."));
@@ -134,7 +145,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
         {visited && (
           <div>
             <p className={label}>Date photos</p>
-            <PhotoPicker existing={existing} onExistingChange={setExisting} files={files} onFilesChange={setFiles} />
+            <PhotoPicker items={photoItems} onChange={setPhotoItems} />
           </div>
         )}
 
@@ -144,13 +155,13 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
               onFocus={() => setShowSug(true)} onBlur={() => setTimeout(() => setShowSug(false), 150)}
               maxLength={150} placeholder="Place name" className={input} autoFocus={!editing && !prefill} />
             {showSug && suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-xl backdrop-blur">
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-2xl border border-white/60 bg-white shadow-xl">
                 {suggestions.map((s) => (
                   <li key={s.id}>
                     <button type="button" onPointerDown={(e) => e.preventDefault()} onClick={() => pickSuggestion(s)}
                       className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm active:bg-wine-700/10">
                       <span className="line-clamp-1 font-medium">{s.title}</span>
-                      <span className="shrink-0 text-xs text-zinc-400">Visited {totalVisitsFor(places, s.title) - 1}x</span>
+                      <span className="shrink-0 text-xs text-zinc-400">Visited {s.visit_count}x</span>
                     </button>
                   </li>
                 ))}
@@ -220,7 +231,9 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
 
         <div>
           <p className={label}>{visited ? "What you ordered / did" : "Things to try"}</p>
-          <ChecklistEditor items={checklist} onChange={setChecklist} placeholder={visited ? "e.g. Iced latte" : "e.g. Try the special fried rice"} />
+          {/* Visit log = plain list (no checkboxes). Wishlist keeps checkboxes. */}
+          <ChecklistEditor items={checklist} onChange={setChecklist} checkable={!visited}
+            placeholder={visited ? "e.g. Iced latte" : "e.g. Try the special fried rice"} />
         </div>
 
         <div>

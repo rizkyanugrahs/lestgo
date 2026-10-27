@@ -24,12 +24,12 @@ export default function BottomSheet({ title, onClose, children, tall = false }: 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center">
       <motion.div
-        className="absolute inset-0 bg-[#2a0a12]/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-[#2a0a12]/40"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
       />
       <motion.div
-        className={`relative flex w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/50 bg-white/85 shadow-2xl backdrop-blur-2xl ${tall ? "h-[94dvh]" : "max-h-[92dvh]"}`}
+        className={`relative flex w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/50 bg-white/90 shadow-2xl backdrop-blur-xl ${tall ? "h-[94dvh]" : "max-h-[92dvh]"}`}
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 380, damping: 38 }}
         drag="y" dragControls={controls} dragListener={false}

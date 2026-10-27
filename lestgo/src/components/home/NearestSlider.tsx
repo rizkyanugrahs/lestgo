@@ -43,7 +43,7 @@ export default function NearestSlider() {
                 className="relative h-52 w-[80%] shrink-0 snap-center overflow-hidden rounded-3xl bg-brand shadow-lg shadow-wine-700/30">
                 <Icon className="absolute -right-4 -top-4 h-32 w-32 text-white/10" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                <span className={`absolute left-3 top-3 flex items-center gap-1 rounded-full border border-white/40 px-2.5 py-1 text-[11px] font-bold backdrop-blur-md ${n === 0 ? "bg-white text-wine-700" : "bg-white/25 text-white"}`}>
+                <span className={`absolute left-3 top-3 flex items-center gap-1 rounded-full border border-white/40 px-2.5 py-1 text-[11px] font-bold ${n === 0 ? "bg-white text-wine-700" : "bg-white/25 text-white"}`}>
                   <CalendarClock className="h-3 w-3" /> {countdownLabel(n)}
                 </span>
                 <div className="absolute inset-x-0 bottom-0 p-4">
@@ -51,7 +51,7 @@ export default function NearestSlider() {
                   {p.location_name && <p className="mb-2 flex items-center gap-1 text-xs text-white/80"><MapPin className="h-3 w-3 shrink-0" /><span className="line-clamp-1">{p.location_name}</span></p>}
                   <div className="flex gap-2">
                     <a href={placeMapsHref(p)} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/25 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-md transition active:scale-95">
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/25 px-3.5 py-1.5 text-xs font-semibold text-white transition active:scale-95">
                       <Navigation className="h-3.5 w-3.5" /> Get Directions
                     </a>
                     <button onClick={() => setCompleting(p)}
