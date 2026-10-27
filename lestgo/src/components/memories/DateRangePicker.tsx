@@ -4,15 +4,15 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MONTHS, fmtRange, monthRange, todayStr, yearRange, type DateRange } from "@/lib/dates";
 import BottomSheet from "../BottomSheet";
 
-type Tab = "tanggal" | "bulan" | "tahun";
-const DAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+type Tab = "date" | "month" | "year";
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function DateRangePicker({ value, onApply, onClose }: {
   value: DateRange; onApply: (r: DateRange) => void; onClose: () => void;
 }) {
   const now = new Date();
-  const [tab, setTab] = useState<Tab>("tanggal");
+  const [tab, setTab] = useState<Tab>("date");
   const [draft, setDraft] = useState<DateRange>(value);
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [year, setYear] = useState(now.getFullYear());
@@ -39,16 +39,16 @@ export default function DateRangePicker({ value, onApply, onClose }: {
   );
 
   return (
-    <BottomSheet title="Filter tanggal" onClose={onClose}>
+    <BottomSheet title="Filter by date" onClose={onClose}>
       <div className="space-y-4">
-        <div className="glass flex rounded-full p-1">{tabBtn("tanggal", "Tanggal")}{tabBtn("bulan", "Bulan")}{tabBtn("tahun", "Tahun")}</div>
+        <div className="glass flex rounded-full p-1">{tabBtn("date", "Date")}{tabBtn("month", "Month")}{tabBtn("year", "Year")}</div>
 
-        {tab === "tanggal" && (
+        {tab === "date" && (
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <button onClick={() => move(-1)} aria-label="Bulan sebelumnya" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
+              <button onClick={() => move(-1)} aria-label="Previous month" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
               <p className="font-bold">{MONTHS[m]} {y}</p>
-              <button onClick={() => move(1)} aria-label="Bulan berikutnya" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
+              <button onClick={() => move(1)} aria-label="Next month" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
             </div>
             <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-medium text-zinc-400">{DAYS.map((d) => <span key={d}>{d}</span>)}</div>
             <div className="grid grid-cols-7 gap-y-1">
@@ -66,27 +66,27 @@ export default function DateRangePicker({ value, onApply, onClose }: {
                 );
               })}
             </div>
-            <p className="mt-3 text-center text-xs text-zinc-400">Ketuk satu tanggal, atau dua tanggal untuk rentang.</p>
+            <p className="mt-3 text-center text-xs text-zinc-400">Tap one date, or two dates for a range.</p>
           </div>
         )}
 
-        {tab === "bulan" && (
+        {tab === "month" && (
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <button onClick={() => setYear(year - 1)} aria-label="Tahun sebelumnya" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
+              <button onClick={() => setYear(year - 1)} aria-label="Previous year" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
               <p className="font-bold">{year}</p>
-              <button onClick={() => setYear(year + 1)} aria-label="Tahun berikutnya" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
+              <button onClick={() => setYear(year + 1)} aria-label="Next year" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {MONTHS.map((name, idx) => (
                 <button key={name} onClick={() => setDraft(monthRange(year, idx))}
-                  className={`rounded-2xl py-3 text-sm font-semibold transition ${same(monthRange(year, idx)) ? "bg-brand text-white shadow" : "bg-white/70 text-zinc-600 ring-1 ring-white/60"}`}>{name}</button>
+                  className={`rounded-2xl py-3 text-sm font-semibold transition ${same(monthRange(year, idx)) ? "bg-brand text-white shadow" : "bg-white/70 text-zinc-600 ring-1 ring-white/60"}`}>{name.slice(0, 3)}</button>
               ))}
             </div>
           </div>
         )}
 
-        {tab === "tahun" && (
+        {tab === "year" && (
           <div className="grid grid-cols-3 gap-2">
             {years.map((yy) => (
               <button key={yy} onClick={() => setDraft(yearRange(yy))}
@@ -99,7 +99,7 @@ export default function DateRangePicker({ value, onApply, onClose }: {
 
         <div className="flex gap-3">
           <button onClick={() => onApply({ from: null, to: null })} className="flex-1 rounded-2xl bg-white/70 py-3 font-semibold text-zinc-600 ring-1 ring-white/60">Reset</button>
-          <button onClick={apply} className="flex-1 rounded-2xl bg-brand py-3 font-semibold text-white shadow-lg shadow-wine-700/25">Terapkan</button>
+          <button onClick={apply} className="flex-1 rounded-2xl bg-brand py-3 font-semibold text-white shadow-lg shadow-wine-700/25">Apply</button>
         </div>
       </div>
     </BottomSheet>
