@@ -4,7 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { ImagePlus, X } from "lucide-react";
 import PhotoCropper from "./PhotoCropper";
 
-/** Pilih foto, lalu setiap foto otomatis dibuka di pemotong 4:5 (zoom, geser, putar). */
+/** Pick photos; each one opens in the 4:5 cropper (zoom, pan, rotate). */
 export default function PhotoPicker({ existing, onExistingChange, files, onFilesChange, max = 10 }: {
   existing: string[]; onExistingChange: (urls: string[]) => void;
   files: File[]; onFilesChange: (files: File[]) => void; max?: number;
@@ -19,7 +19,7 @@ export default function PhotoPicker({ existing, onExistingChange, files, onFiles
     <div key={key} className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-100">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" className="h-full w-full object-cover" />
-      <button type="button" onClick={onRemove} aria-label="Hapus foto" className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white"><X className="h-3.5 w-3.5" /></button>
+      <button type="button" onClick={onRemove} aria-label="Remove photo" className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white"><X className="h-3.5 w-3.5" /></button>
     </div>
   );
 
@@ -30,7 +30,7 @@ export default function PhotoPicker({ existing, onExistingChange, files, onFiles
         {previews.map((u, i) => thumb(u, () => onFilesChange(files.filter((_, j) => j !== i)), u))}
         {total + queue.length < max && (
           <label className="flex aspect-[4/5] cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-wine-700/30 bg-white/50 text-xs font-medium text-wine-700">
-            <ImagePlus className="h-5 w-5" /> Foto
+            <ImagePlus className="h-5 w-5" /> Add
             <input type="file" accept="image/*" multiple hidden
               onChange={(e) => {
                 const picked = Array.from(e.target.files ?? []).slice(0, max - total - queue.length);
