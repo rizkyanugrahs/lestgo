@@ -2,13 +2,13 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MONTHS, fmtRange, inRange, monthRange, todayStr, weekRange, type DateRange } from "@/lib/dates";
-import { placeVisitDates } from "@/lib/places";
+import { normName, placeVisitDates } from "@/lib/places";
 import { useData } from "../DataProvider";
 
 type Mode = "all" | "month" | "week" | "range";
 const MODES: { key: Mode; label: string }[] = [
-  { key: "all", label: "All" }, { key: "month", label: "Bulanan" },
-  { key: "week", label: "Mingguan" }, { key: "range", label: "Rentang" },
+  { key: "all", label: "All" }, { key: "month", label: "Monthly" },
+  { key: "week", label: "Weekly" }, { key: "range", label: "Range" },
 ];
 
 export default function StatsCard() {
@@ -26,19 +26,23 @@ export default function StatsCard() {
     }
     if (mode === "week") { const r = weekRange(offset); return { period: r, label: fmtRange(r) }; }
     if (mode === "range" && from && to) { const r = from <= to ? { from, to } : { from: to, to: from }; return { period: r, label: fmtRange(r) }; }
-    return { period: { from: null, to: null }, label: mode === "range" ? "Pilih dua tanggal" : "Sepanjang waktu" };
+    return { period: { from: null, to: null }, label: mode === "range" ? "Pick two dates" : "All time" };
   }, [mode, offset, from, to]);
 
   const stats = useMemo(() => {
     const visited = places.filter((p) => p.status === "visited");
     const wish = places.filter((p) => p.status === "wishlist").length;
-    let events = 0, doneCount = 0;
+    const unbounded = !period.from && !period.to;
+    const allNames = new Set(visited.map((p) => normName(p.title)));
+    const inPeriod = new Set<string>();
+    let events = 0;
     for (const p of visited) {
-      const n = placeVisitDates(p).filter((d) => inRange(d, period)).length;
-      if (n > 0) { events += n; doneCount++; }
+      const dates = placeVisitDates(p);
+      const n = unbounded ? Math.max(1, dates.length) : dates.filter((d) => inRange(d, period)).length;
+      if (n > 0) { events += n; inPeriod.add(normName(p.title)); }
     }
-    const tracked = wish + visited.length;
-    return { wish, events, doneCount, tracked, pct: tracked ? Math.round((doneCount / tracked) * 100) : 0 };
+    const tracked = wish + allNames.size;
+    return { wish, events, doneCount: inPeriod.size, tracked, pct: tracked ? Math.round((inPeriod.size / tracked) * 100) : 0 };
   }, [places, period]);
 
   const arrows = mode === "month" || mode === "week";
@@ -54,31 +58,38 @@ export default function StatsCard() {
 
       {mode === "range" && (
         <div className="flex items-center gap-2">
-          <input type="date" value={from} max={todayStr()} onChange={(e) => setFrom(e.target.value)} aria-label="Dari tanggal"
+          <input type="date" value={from} max={todayStr()} onChange={(e) => setFrom(e.target.value)} aria-label="From date"
             className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white/70 px-3 py-2 text-sm outline-none focus:border-wine-600" />
           <span className="text-zinc-400">–</span>
-          <input type="date" value={to} max={todayStr()} onChange={(e) => setTo(e.target.value)} aria-label="Sampai tanggal"
+          <input type="date" value={to} max={todayStr()} onChange={(e) => setTo(e.target.value)} aria-label="To date"
             className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white/70 px-3 py-2 text-sm outline-none focus:border-wine-600" />
         </div>
       )}
 
       <div className="flex items-center justify-between">
-        {arrows ? <button onClick={() => setOffset(offset - 1)} aria-label="Sebelumnya" className="rounded-full bg-white/70 p-1.5"><ChevronLeft className="h-4 w-4" /></button> : <span className="w-7" />}
+        {arrows ? <button onClick={() => setOffset(offset - 1)} aria-label="Previous" className="rounded-full bg-white/70 p-1.5"><ChevronLeft className="h-4 w-4" /></button> : <span className="w-7" />}
         <p className="text-sm font-semibold text-zinc-700">{label}</p>
-        {arrows ? <button onClick={() => setOffset(offset + 1)} aria-label="Berikutnya" className="rounded-full bg-white/70 p-1.5"><ChevronRight className="h-4 w-4" /></button> : <span className="w-7" />}
+        {arrows ? <button onClick={() => setOffset(offset + 1)} aria-label="Next" className="rounded-full bg-white/70 p-1.5"><ChevronRight className="h-4 w-4" /></button> : <span className="w-7" />}
       </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-2xl bg-white/60 py-3"><p className="text-2xl font-extrabold text-wine-700">{stats.doneCount}</p><p className="text-[11px] text-zinc-500">Tempat dikunjungi</p></div>
-        <div className="rounded-2xl bg-white/60 py-3"><p className="text-2xl font-extrabold text-wine-700">{stats.events}</p><p className="text-[11px] text-zinc-500">Total kencan</p></div>
-        <div className="rounded-2xl bg-white/60 py-3"><p className="text-2xl font-extrabold text-wine-700">{stats.wish}</p><p className="text-[11px] text-zinc-500">Wishlist tersisa</p></div>
+      <div className="grid grid-cols-2 gap-3 text-center">
+        <div className="rounded-2xl bg-white/60 py-4">
+          <p className="text-3xl font-extrabold text-wine-700">{stats.doneCount}</p>
+          <p className="text-xs text-zinc-500">Visited places</p>
+        </div>
+        <div className="rounded-2xl bg-white/60 py-4">
+          <p className="text-3xl font-extrabold text-wine-700">{stats.wish}</p>
+          <p className="text-xs text-zinc-500">Remaining wishlist</p>
+        </div>
       </div>
+
+      <p className="text-center text-xs text-zinc-500">Total dates in this period: <b className="text-zinc-700">{stats.events}</b></p>
 
       <div>
         <div className="h-2 overflow-hidden rounded-full bg-wine-700/10">
           <div className="h-full rounded-full bg-brand-bright transition-all duration-500" style={{ width: `${stats.pct}%` }} />
         </div>
-        <p className="mt-1.5 text-xs text-zinc-500">{stats.tracked ? `${stats.doneCount} dari ${stats.tracked} tempat sudah dikunjungi (${stats.pct}%)` : "Belum ada data"}</p>
+        <p className="mt-1.5 text-xs text-zinc-500">{stats.tracked ? `${stats.doneCount} of ${stats.tracked} places visited (${stats.pct}%)` : "No data yet"}</p>
       </div>
     </section>
   );
