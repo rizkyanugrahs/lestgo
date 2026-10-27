@@ -27,24 +27,24 @@ export function clearStoredRoom() {
 const randomCode = () =>
   CODE_PREFIX + String(Math.floor(Math.random() * 10 ** CODE_DIGITS)).padStart(CODE_DIGITS, "0");
 
-/** Membuat room baru. Kalau kode bentrok, otomatis dicoba ulang. */
+/** Creates a new room. If the code collides, it retries automatically. */
 export async function createRoom(): Promise<StoredRoom> {
   for (let i = 0; i < 5; i++) {
     const { data, error } = await supabase
       .from("rooms").insert({ code: randomCode() }).select("id, code").single();
     if (data) return data;
-    if (error?.code !== "23505") throw new Error(error?.message ?? "Gagal membuat room.");
+    if (error?.code !== "23505") throw new Error(error?.message ?? "Failed to create the room.");
   }
-  throw new Error("Gagal membuat kode unik. Coba lagi.");
+  throw new Error("Couldn't generate a unique code. Please try again.");
 }
 
-/** Menerima "LGO-1234", "lgo1234" atau "1234". */
+/** Accepts "LGO-1234", "lgo1234" or just "1234". */
 export async function joinRoom(input: string): Promise<StoredRoom> {
   const digits = input.replace(/\D/g, "");
-  if (digits.length !== CODE_DIGITS) throw new Error(`Masukkan ${CODE_DIGITS} digit kode.`);
+  if (digits.length !== CODE_DIGITS) throw new Error(`Enter the ${CODE_DIGITS}-digit code.`);
   const { data, error } = await supabase
     .from("rooms").select("id, code").eq("code", CODE_PREFIX + digits).maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Room dengan kode itu tidak ditemukan.");
+  if (!data) throw new Error("No room found with that code.");
   return data;
 }
