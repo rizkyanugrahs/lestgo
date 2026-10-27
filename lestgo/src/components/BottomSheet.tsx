@@ -5,8 +5,8 @@ import { motion, useDragControls } from "framer-motion";
 import { X } from "lucide-react";
 
 /**
- * Lembar pop-up bergaya liquid glass. Bisa ditutup dengan menggeser ke bawah
- * (tarik bagian atas / judul), mengetuk area gelap, atau tombol X.
+ * Liquid glass pop-up. Close it by swiping down (drag the top handle / title),
+ * tapping the dark area, or pressing X.
  */
 export default function BottomSheet({ title, onClose, children, tall = false }: {
   title: string; onClose: () => void; children: ReactNode; tall?: boolean;
@@ -40,7 +40,7 @@ export default function BottomSheet({ title, onClose, children, tall = false }: 
           <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-300" />
           <div className="flex items-center justify-between gap-3">
             <h2 className="line-clamp-1 text-lg font-bold">{title}</h2>
-            <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} aria-label="Tutup"
+            <button onPointerDown={(e) => e.stopPropagation()} onClick={onClose} aria-label="Close"
               className="shrink-0 rounded-full bg-zinc-100 p-1.5 text-zinc-500"><X className="h-4 w-4" /></button>
           </div>
         </div>
