@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 
 type Result<T> = PromiseLike<{ data: T[] | null; error: unknown }>;
 
-/** Ambil data, lalu ambil ulang (dengan jeda) setiap kali tabel berubah untuk room ini. */
+/** Fetch rows, then refetch (debounced) whenever the table changes for this room. */
 export function useRealtimeQuery<T>(table: string, roomId: string, fetcher: () => Result<T>) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,7 @@ export function useRealtimeQuery<T>(table: string, roomId: string, fetcher: () =
 
   const load = useCallback(async () => {
     const { data, error } = await fetchRef.current();
-    if (error) setError((error as { message?: string }).message ?? "Gagal memuat data");
+    if (error) setError((error as { message?: string }).message ?? "Failed to load data");
     else { setData(data ?? []); setLastSynced(new Date()); setError(null); }
     setLoading(false);
   }, []);
@@ -27,8 +27,6 @@ export function useRealtimeQuery<T>(table: string, roomId: string, fetcher: () =
       .channel(`${table}:${roomId}`)
       .on("postgres_changes",
         { event: "*", schema: "public", table, filter: `room_id=eq.${roomId}` },
-        () => { clearTimeout(timer); timer = setTimeout(load, 250); })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table },
         () => { clearTimeout(timer); timer = setTimeout(load, 250); })
       .subscribe();
     return () => { clearTimeout(timer); supabase.removeChannel(channel); };
