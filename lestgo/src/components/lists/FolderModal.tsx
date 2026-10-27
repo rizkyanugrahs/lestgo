@@ -30,13 +30,13 @@ export default function FolderModal({ folder, defaultCategory, onClose, onSaved 
   };
 
   return (
-    <BottomSheet title={folder ? "Edit folder" : "Folder baru"} onClose={onClose}>
+    <BottomSheet title={folder ? "Edit folder" : "New folder"} onClose={onClose}>
       <div className="space-y-4">
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} autoFocus
-          placeholder="Nama folder, mis. Kafe di Bandung"
+          placeholder="Folder name, e.g. Cafes in Bandung"
           className="w-full rounded-2xl border border-zinc-200 bg-white/70 px-4 py-3 outline-none focus:border-wine-600" />
         <div>
-          <p className="mb-2 text-sm font-medium text-zinc-500">Kategori</p>
+          <p className="mb-2 text-sm font-medium text-zinc-500">Category</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((c) => {
               const { Icon } = styleFor(c);
@@ -53,7 +53,7 @@ export default function FolderModal({ folder, defaultCategory, onClose, onSaved 
         {error && <p className="text-sm text-wine-600">{error}</p>}
         <button disabled={busy || !name.trim()} onClick={save}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white shadow-lg shadow-wine-700/25 transition active:scale-[0.98] disabled:opacity-40">
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {folder ? "Simpan" : "Buat folder"}
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {folder ? "Save" : "Create folder"}
         </button>
       </div>
     </BottomSheet>
