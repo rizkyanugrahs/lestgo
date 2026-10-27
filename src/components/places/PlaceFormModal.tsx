@@ -166,13 +166,16 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Description / notes" className={`${input} resize-none`} />
         </div>
 
-        <div>
-          <p className={label}>Folder</p>
-          <select value={folderId} onChange={(e) => setFolderId(e.target.value)} className={input}>
-            <option value="">No folder</option>
-            {folders.map((f) => <option key={f.id} value={f.id}>{f.title}</option>)}
-          </select>
-        </div>
+        {/* Folder dropdown is hidden when adding a standalone item, but visible when editing or adding from inside a folder */}
+        {(editing || defaultFolderId) && folders.length > 0 && (
+          <div>
+            <p className={label}>Folder</p>
+            <select value={folderId} onChange={(e) => setFolderId(e.target.value)} className={input}>
+              <option value="">No folder</option>
+              {folders.map((f) => <option key={f.id} value={f.id}>{f.title}</option>)}
+            </select>
+          </div>
+        )}
 
         <div>
           <p className={label}>Category</p>
