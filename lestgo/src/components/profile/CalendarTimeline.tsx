@@ -6,7 +6,7 @@ import { placeVisitDates } from "@/lib/places";
 import type { Place } from "@/lib/types";
 import { useData } from "../DataProvider";
 
-const DAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => void }) {
@@ -15,7 +15,7 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [selected, setSelected] = useState<string | null>(null);
 
-  // tanggal -> daftar tempat (kunjungan ulang ikut tercatat di tanggalnya masing-masing)
+  // date -> places visited that day (each visit entry sits on its own date)
   const byDate = useMemo(() => {
     const map = new Map<string, Place[]>();
     for (const p of places) for (const d of new Set(placeVisitDates(p))) {
@@ -43,12 +43,12 @@ export default function CalendarTimeline({ onOpen }: { onOpen: (p: Place) => voi
     <section>
       <div className="glass rounded-3xl p-4">
         <div className="mb-3 flex items-center justify-between">
-          <button onClick={() => move(-1)} aria-label="Bulan sebelumnya" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
+          <button onClick={() => move(-1)} aria-label="Previous month" className="rounded-full bg-white/70 p-2"><ChevronLeft className="h-4 w-4" /></button>
           <div className="text-center">
             <p className="font-bold">{MONTHS[m]} {y}</p>
-            <p className="text-xs text-zinc-400">{monthCount} kali kencan</p>
+            <p className="text-xs text-zinc-400">{monthCount} {monthCount === 1 ? "date" : "dates"}</p>
           </div>
-          <button onClick={() => move(1)} aria-label="Bulan berikutnya" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => move(1)} aria-label="Next month" className="rounded-full bg-white/70 p-2"><ChevronRight className="h-4 w-4" /></button>
         </div>
 
         <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-medium text-zinc-400">
