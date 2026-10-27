@@ -5,7 +5,7 @@ import { Heart, Star } from "lucide-react";
 import { fmtShort } from "@/lib/dates";
 import type { Place } from "@/lib/types";
 
-/** Slideshow otomatis untuk (maks.) 5 tempat berating 5 bintang. */
+/** Auto slideshow of up to 5 places rated 5 stars. */
 export default function FlashbackSlideshow({ items, onOpen }: { items: Place[]; onOpen: (p: Place) => void }) {
   const [i, setI] = useState(0);
 
@@ -39,8 +39,9 @@ export default function FlashbackSlideshow({ items, onOpen }: { items: Place[]; 
         </motion.div>
       </AnimatePresence>
 
-      <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full border border-white/40 bg-white/25 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-        <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> Flashback bintang 5
+      <span aria-label="5-star favorites"
+        className="absolute left-3 top-3 flex items-center gap-0.5 rounded-full border border-white/40 bg-white/25 px-2.5 py-1.5 backdrop-blur-md">
+        {[0, 1, 2, 3, 4].map((k) => <Star key={k} className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />)}
       </span>
       {items.length > 1 && (
         <div className="absolute bottom-4 right-4 flex gap-1.5">
