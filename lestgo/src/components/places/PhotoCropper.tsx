@@ -4,7 +4,7 @@ import { Loader2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import BottomSheet from "../BottomSheet";
 
 const OUT_W = 1080;
-const OUT_H = 1350; // rasio 4:5 (seperti feed Instagram)
+const OUT_H = 1350; // 4:5 ratio (like an Instagram feed post)
 
 const clamp = (v: number, m: number) => Math.min(m, Math.max(-m, v));
 
@@ -53,7 +53,7 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
     };
   }, [img, rot, zoom, w, h]);
 
-  // Saat zoom/rotasi berubah, pastikan posisi tetap di dalam batas
+  // When zoom/rotation changes, keep the position inside the allowed bounds
   useEffect(() => {
     if (!geo) return;
     const c = { x: clamp(offRef.current.x, geo.maxX), y: clamp(offRef.current.y, geo.maxY) };
@@ -108,14 +108,14 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
     ctx.drawImage(img, -geo.iw / 2, -geo.ih / 2);
     c.toBlob((b) => {
       if (!b) { setBusy(false); return; }
-      onDone(new File([b], `foto-${Date.now()}.jpg`, { type: "image/jpeg" }));
+      onDone(new File([b], `photo-${Date.now()}.jpg`, { type: "image/jpeg" }));
     }, "image/jpeg", 0.88);
   };
 
   const round = "flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-wine-700 shadow-sm ring-1 ring-white/60 backdrop-blur";
 
   return (
-    <BottomSheet title="Atur foto (4:5)" onClose={onCancel}>
+    <BottomSheet title="Adjust photo (4:5)" onClose={onCancel}>
       <div className="space-y-4">
         <div
           ref={boxRef}
@@ -145,7 +145,7 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
           )}
           <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/40" />
         </div>
-        <p className="text-center text-xs text-zinc-400">Geser untuk memindahkan, cubit atau pakai slider untuk zoom.</p>
+        <p className="text-center text-xs text-zinc-400">Drag to move, pinch or use the slider to zoom.</p>
 
         <div className="flex items-center gap-3">
           <button type="button" onClick={() => setZoom((z) => Math.max(1, z - 0.25))} aria-label="Zoom out" className={round}><ZoomOut className="h-5 w-5" /></button>
@@ -154,15 +154,15 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
           <button type="button" onClick={() => setZoom((z) => Math.min(4, z + 0.25))} aria-label="Zoom in" className={round}><ZoomIn className="h-5 w-5" /></button>
         </div>
         <div className="flex items-center justify-center gap-3">
-          <button type="button" onClick={() => rotate(-1)} aria-label="Putar kiri" className={round}><RotateCcw className="h-5 w-5" /></button>
-          <button type="button" onClick={() => rotate(1)} aria-label="Putar kanan" className={round}><RotateCw className="h-5 w-5" /></button>
+          <button type="button" onClick={() => rotate(-1)} aria-label="Rotate left" className={round}><RotateCcw className="h-5 w-5" /></button>
+          <button type="button" onClick={() => rotate(1)} aria-label="Rotate right" className={round}><RotateCw className="h-5 w-5" /></button>
         </div>
 
         <div className="flex gap-3">
-          <button type="button" onClick={onCancel} className="flex-1 rounded-2xl bg-zinc-100 py-3 font-semibold text-zinc-600">Batal</button>
+          <button type="button" onClick={onCancel} className="flex-1 rounded-2xl bg-zinc-100 py-3 font-semibold text-zinc-600">Cancel</button>
           <button type="button" disabled={!geo || busy} onClick={save}
             className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3 font-semibold text-white transition active:scale-[0.98] disabled:opacity-40">
-            {busy && <Loader2 className="h-4 w-4 animate-spin" />} Pakai foto
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />} Use photo
           </button>
         </div>
       </div>
