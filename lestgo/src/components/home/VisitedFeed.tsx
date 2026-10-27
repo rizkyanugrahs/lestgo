@@ -22,14 +22,14 @@ export default function VisitedFeed() {
 
   return (
     <section className="px-5">
-      <h2 className="mb-3 text-lg font-bold">Baru dikunjungi</h2>
+      <h2 className="mb-3 text-lg font-bold">Recently visited</h2>
 
       {loading ? (
         <div className="space-y-4">{[0, 1].map((i) => <div key={i} className="aspect-[4/5] animate-pulse rounded-3xl bg-zinc-200/70" />)}</div>
       ) : visited.length === 0 ? (
         <div className="glass rounded-3xl p-8 text-center text-sm text-zinc-500">
           <Camera className="mx-auto mb-2 h-6 w-6 text-wine-700/40" />
-          Belum ada tempat yang dikunjungi. Tekan tombol <b>+</b> untuk mencatat yang pertama!
+          No visited places yet. Tap the <b>+</b> button to log your first one!
         </div>
       ) : (
         <div className="space-y-5">
