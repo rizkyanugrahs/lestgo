@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "LestGo",
     short_name: "LestGo",
-    description: "Bucket list, kenangan, dan rencana kencan berdua.",
+    description: "Our bucket list, memories and date plans.",
     start_url: "/",
     display: "standalone",
     background_color: "#fafafa",
