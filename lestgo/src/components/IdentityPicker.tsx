@@ -1,6 +1,6 @@
 "use client";
-import { Heart } from "lucide-react";
 import { useMe } from "./MeProvider";
+import Logo from "./Logo";
 import type { PersonKey } from "@/lib/types";
 
 const OPTIONS: { key: PersonKey; label: string; icon: string }[] = [
@@ -13,11 +13,9 @@ export default function IdentityPicker() {
   return (
     <div className="fixed inset-0 z-[80] flex flex-col items-center justify-center bg-gradient-to-b from-[#fdf2f4] to-white px-6">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#800020] shadow-lg shadow-wine-700/30">
-          <Heart className="h-8 w-8 fill-white text-white" />
-        </div>
-        <h1 className="text-2xl font-bold">Kamu siapa?</h1>
-        <p className="mt-1 text-sm text-zinc-500">Dipakai untuk menandai Comfort Pick-mu. Bisa diganti di Pengaturan.</p>
+        <div className="mx-auto mb-4 w-fit"><Logo size={64} /></div>
+        <h1 className="text-2xl font-bold">Who are you?</h1>
+        <p className="mt-1 text-sm text-zinc-500">Used to mark your Picks. You can change it in Settings.</p>
       </div>
       <div className="w-full max-w-sm space-y-3">
         {OPTIONS.map((o) => (
