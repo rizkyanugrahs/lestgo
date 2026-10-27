@@ -46,7 +46,7 @@ export default function MemoriesScreen() {
       <header className="px-5 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Memories</h1>
-          <button onClick={() => setPicking(true)} aria-label="Filter tanggal"
+          <button onClick={() => setPicking(true)} aria-label="Filter by date"
             className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 ${range.from ? "bg-brand text-white shadow-md shadow-wine-700/30" : "glass text-wine-700"}`}>
             <CalendarDays className="h-5 w-5" />
           </button>
@@ -59,15 +59,16 @@ export default function MemoriesScreen() {
         )}
       </header>
 
+      {/* Category order follows the order set in Settings */}
       <CategoryTabs value={category} onChange={setCategory} categories={categories} />
 
       <div className="space-y-5 px-5">
         {isAnniversary && !filtering && (
           <div className="relative overflow-hidden rounded-3xl bg-brand-bright p-5 text-white shadow-lg shadow-wine-700/30">
             <Heart className="absolute -right-4 -top-4 h-28 w-28 fill-white/15 text-white/15" />
-            <p className="text-xs font-semibold text-white/80">Hari ini</p>
-            <h3 className="mt-1 text-xl font-bold">{anniYears > 0 ? `Selamat anniversary ke-${anniYears}!` : "Selamat anniversary!"}</h3>
-            <p className="mt-1 text-sm text-white/85">Rayakan dengan makan malam atau jalan-jalan berdua.</p>
+            <p className="text-xs font-semibold text-white/80">Today</p>
+            <h3 className="mt-1 text-xl font-bold">{anniYears > 0 ? `Happy ${anniYears}-year anniversary!` : "Happy anniversary!"}</h3>
+            <p className="mt-1 text-sm text-white/85">Celebrate with a nice dinner or a little trip together.</p>
           </div>
         )}
 
@@ -78,7 +79,7 @@ export default function MemoriesScreen() {
         ) : filtered.length === 0 ? (
           <div className="glass rounded-3xl p-8 text-center text-sm text-zinc-500">
             <Camera className="mx-auto mb-2 h-6 w-6 text-wine-700/40" />
-            {visited.length === 0 ? "Kenangan muncul otomatis dari tempat yang kalian kunjungi. Tekan + untuk mencatat." : "Tidak ada kenangan yang cocok dengan filter."}
+            {visited.length === 0 ? "Memories appear automatically from the places you visit. Tap + to log one." : "No memories match your filters."}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
