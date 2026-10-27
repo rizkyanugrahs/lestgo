@@ -8,7 +8,7 @@ export default function HomeHeader() {
   return (
     <header className="flex items-center justify-between px-5 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
       <h1 className="text-2xl font-bold tracking-tight">LestGo</h1>
-      <Link href="/profile" aria-label="Profil pasangan"
+      <Link href="/profile" aria-label="Couple profile"
         className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-brand shadow-md shadow-wine-700/20">
         {roomInfo.couple_photo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
