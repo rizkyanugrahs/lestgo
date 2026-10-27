@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-/** Kecilkan foto (maks 1350px) supaya upload cepat dan hemat kuota. */
+/** Shrink the photo (max 1350px) so uploads are fast and light. */
 async function compress(file: File): Promise<Blob> {
   try {
     const bitmap = await createImageBitmap(file);
@@ -20,6 +20,6 @@ export async function uploadPhoto(file: File, roomId: string): Promise<string> {
   const blob = await compress(file);
   const path = `${roomId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   const { error } = await supabase.storage.from("photos").upload(path, blob, { contentType: "image/jpeg" });
-  if (error) throw new Error("Upload foto gagal: " + error.message);
+  if (error) throw new Error("Photo upload failed: " + error.message);
   return supabase.storage.from("photos").getPublicUrl(path).data.publicUrl;
 }
