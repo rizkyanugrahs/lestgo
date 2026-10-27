@@ -37,7 +37,7 @@ export default function BottomNav({ onAdd }: { onAdd: () => void }) {
       <ul className="mx-auto flex max-w-md items-center justify-between rounded-full border border-white/40 bg-white/60 p-1.5 shadow-xl shadow-wine-900/10 backdrop-blur-xl">
         {left.map(tab)}
         <li className="flex flex-1 justify-center">
-          <button onClick={onAdd} aria-label="Tambah tempat yang dikunjungi"
+          <button onClick={onAdd} aria-label="Add a visited place"
             className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-brand text-white shadow-lg shadow-wine-700/40 ring-4 ring-white/60 transition active:scale-90">
             <Plus className="h-7 w-7" />
           </button>
