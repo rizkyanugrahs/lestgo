@@ -28,7 +28,7 @@ export default function ProfileScreen() {
       <CalendarTimeline onOpen={open} />
 
       <div className="flex justify-center pb-2 pt-1">
-        <button onClick={() => setSettings(true)} aria-label="Pengaturan"
+        <button onClick={() => setSettings(true)} aria-label="Settings"
           className="glass flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition active:scale-95">
           <Settings className="h-5 w-5" />
         </button>
