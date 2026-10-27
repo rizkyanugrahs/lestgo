@@ -23,7 +23,7 @@ export default function NearestSlider() {
 
   return (
     <section>
-      <h2 className="mb-3 px-5 text-lg font-bold">Terdekat di wishlist</h2>
+      <h2 className="mb-3 px-5 text-lg font-bold">Nearest on your wishlist</h2>
 
       {loading ? (
         <div className="flex gap-3 overflow-hidden px-5">
@@ -31,7 +31,7 @@ export default function NearestSlider() {
         </div>
       ) : upcoming.length === 0 ? (
         <div className="glass mx-5 rounded-3xl p-6 text-center text-sm text-zinc-500">
-          Belum ada rencana kencan.<br />Isi <b>tanggal rencana</b> pada tempat di tab <b>Lists</b> supaya muncul di sini.
+          No date plans yet.<br />Set a <b>planned date</b> on a place in <b>Lists</b> and it will show up here.
         </div>
       ) : (
         <div className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2">
@@ -56,7 +56,7 @@ export default function NearestSlider() {
                     </a>
                     <button onClick={() => setCompleting(p)}
                       className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-wine-700 transition active:scale-95">
-                      <Check className="h-3.5 w-3.5" /> Selesai
+                      <Check className="h-3.5 w-3.5" /> Done
                     </button>
                   </div>
                 </div>
