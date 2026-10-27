@@ -29,14 +29,14 @@ export default function PairingScreen() {
   const handleCreate = async () => {
     setMode("create"); setBusy(true); setError(null);
     try { setCreated(await createRoom()); }
-    catch (e) { setError(e instanceof Error ? e.message : "Terjadi kesalahan."); }
+    catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
     finally { setBusy(false); }
   };
 
   const handleJoin = async () => {
     setBusy(true); setError(null);
     try { pair(await joinRoom(digits)); }
-    catch (e) { setError(e instanceof Error ? e.message : "Terjadi kesalahan."); setBusy(false); }
+    catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); setBusy(false); }
   };
 
   const copy = async () => {
@@ -50,37 +50,37 @@ export default function PairingScreen() {
       <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mb-10 text-center">
         <div className="mx-auto mb-4 w-fit"><Logo size={80} /></div>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900">LestGo</h1>
-        <p className="mt-1 text-sm text-zinc-500">Bucket list bareng, cuma untuk berdua.</p>
+        <p className="mt-1 text-sm text-zinc-500">Your shared bucket list, just for two.</p>
       </motion.div>
 
       <div className="w-full max-w-sm">
         <AnimatePresence mode="wait">
           {mode === "choose" && (
             <motion.div key="choose" {...slide} className="space-y-3">
-              <button onClick={handleCreate} className="flex w-full items-center gap-4 rounded-2xl bg-brand p-4 text-left text-white shadow-md transition active:scale-[0.98]">
+              <button onClick={handleCreate} className="flex w-full items-center gap-4 rounded-2xl bg-brand p-4 text-left text-white shadow-md shadow-wine-700/30 transition active:scale-[0.98]">
                 <Sparkles className="h-6 w-6" />
-                <div><p className="font-semibold">Create Room</p><p className="text-xs text-white/80">Dapatkan kode untuk dikirim ke pasanganmu</p></div>
+                <div><p className="font-semibold">Create Room</p><p className="text-xs text-white/80">Get a code to share with your partner</p></div>
               </button>
-              <button onClick={() => setMode("join")} className="flex w-full items-center gap-4 rounded-2xl glass p-4 text-left transition active:scale-[0.98]">
+              <button onClick={() => setMode("join")} className="glass flex w-full items-center gap-4 rounded-2xl p-4 text-left transition active:scale-[0.98]">
                 <KeyRound className="h-6 w-6 text-wine-700" />
-                <div><p className="font-semibold text-zinc-900">Join Room</p><p className="text-xs text-zinc-500">Masukkan kode dari pasanganmu</p></div>
+                <div><p className="font-semibold text-zinc-900">Join Room</p><p className="text-xs text-zinc-500">Enter the code your partner shared</p></div>
               </button>
             </motion.div>
           )}
 
           {mode === "create" && (
             <motion.div key="create" {...slide} className="space-y-5 text-center">
-              <button onClick={back} className="flex items-center gap-1 text-sm text-zinc-500"><ArrowLeft className="h-4 w-4" /> Kembali</button>
+              <button onClick={back} className="flex items-center gap-1 text-sm text-zinc-500"><ArrowLeft className="h-4 w-4" /> Back</button>
               {busy && <Loader2 className="mx-auto h-8 w-8 animate-spin text-wine-700" />}
               {created && (
                 <>
-                  <p className="text-sm text-zinc-500">Kirim kode ini ke pasanganmu</p>
-                  <button onClick={copy} className="mx-auto flex items-center gap-3 rounded-2xl bg-white px-6 py-4 shadow-md">
+                  <p className="text-sm text-zinc-500">Share this code with your partner</p>
+                  <button onClick={copy} className="glass mx-auto flex items-center gap-3 rounded-2xl px-6 py-4">
                     <span className="font-mono text-3xl font-bold tracking-widest text-wine-700">{created.code}</span>
-                    {copied ? <Check className="h-5 w-5 text-emerald-500" /> : <Copy className="h-5 w-5 text-zinc-400" />}
+                    {copied ? <Check className="h-5 w-5 text-wine-700" /> : <Copy className="h-5 w-5 text-zinc-400" />}
                   </button>
-                  <button onClick={() => pair(created)} className="w-full rounded-2xl bg-brand py-3.5 font-semibold text-white transition active:scale-[0.98]">
-                    Masuk ke LestGo
+                  <button onClick={() => pair(created)} className="w-full rounded-2xl bg-brand py-3.5 font-semibold text-white shadow-md shadow-wine-700/30 transition active:scale-[0.98]">
+                    Enter LestGo
                   </button>
                 </>
               )}
@@ -89,8 +89,8 @@ export default function PairingScreen() {
 
           {mode === "join" && (
             <motion.div key="join" {...slide} className="space-y-4">
-              <button onClick={back} className="flex items-center gap-1 text-sm text-zinc-500"><ArrowLeft className="h-4 w-4" /> Kembali</button>
-              <div className="flex items-center rounded-2xl border border-zinc-200 bg-white px-4 shadow-sm focus-within:border-wine-600">
+              <button onClick={back} className="flex items-center gap-1 text-sm text-zinc-500"><ArrowLeft className="h-4 w-4" /> Back</button>
+              <div className="glass flex items-center rounded-2xl px-4 focus-within:border-wine-600/50">
                 <span className="font-mono text-xl font-semibold text-zinc-400">LGO-</span>
                 <input
                   autoFocus inputMode="numeric" maxLength={4} value={digits}
@@ -100,14 +100,14 @@ export default function PairingScreen() {
                 />
               </div>
               <button disabled={busy || digits.length < 4} onClick={handleJoin}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white transition active:scale-[0.98] disabled:opacity-40">
-                {busy && <Loader2 className="h-4 w-4 animate-spin" />} Gabung
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white shadow-md shadow-wine-700/30 transition active:scale-[0.98] disabled:opacity-40">
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />} Join
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {error && <p className="mt-4 text-center text-sm text-rose-500">{error}</p>}
+        {error && <p className="mt-4 text-center text-sm text-wine-600">{error}</p>}
       </div>
     </main>
   );
