@@ -41,27 +41,27 @@ export default function GachaSheet({ onClose, onOpen }: { onClose: () => void; o
   );
 
   return (
-    <BottomSheet title="Bingung mau kemana?" onClose={onClose}>
+    <BottomSheet title="Can't decide?" onClose={onClose}>
       <div className="-mx-5 space-y-4">
-        <div className="px-5"><div className="glass flex rounded-full p-1">{seg("wishlist", "Dari wishlist")}{seg("picks", "Dari Comfort Picks")}</div></div>
+        <div className="px-5"><div className="glass flex rounded-full p-1">{seg("wishlist", "From wishlist")}{seg("picks", "From Picks")}</div></div>
         <CategoryTabs value={category} onChange={setCategory} categories={categories} />
 
         <div className="px-5">
           <div className="flex min-h-36 flex-col items-center justify-center rounded-3xl bg-brand p-5 text-center text-white shadow-lg shadow-wine-700/30">
             {pool.length === 0 ? (
-              <p className="text-sm text-white/85">Belum ada {source === "wishlist" ? "wishlist" : "Comfort Pick"} di kategori ini.</p>
+              <p className="text-sm text-white/85">No {source === "wishlist" ? "wishlist places" : "Picks"} in this category yet.</p>
             ) : rolling ? (
               <p className="text-xl font-bold">{shown}</p>
             ) : (
               <AnimatePresence mode="wait">
                 {result ? (
                   <motion.div key={result.id} initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }}>
-                    <p className="text-xs font-semibold text-white/75">Hasilnya:</p>
+                    <p className="text-xs font-semibold text-white/75">Your pick:</p>
                     <p className="text-2xl font-extrabold">{result.title}</p>
                     <p className="mt-1 text-xs text-white/80">{[result.category, result.location_name].filter(Boolean).join(" · ")}</p>
                   </motion.div>
                 ) : (
-                  <p key="idle" className="text-sm text-white/85">{pool.length} pilihan siap diacak. Tekan tombol di bawah!</p>
+                  <p key="idle" className="text-sm text-white/85">{pool.length} option{pool.length === 1 ? "" : "s"} ready to shuffle. Tap the button below!</p>
                 )}
               </AnimatePresence>
             )}
@@ -71,13 +71,13 @@ export default function GachaSheet({ onClose, onOpen }: { onClose: () => void; o
         <div className="space-y-3 px-5">
           <button onClick={roll} disabled={pool.length === 0 || rolling}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 font-semibold text-white shadow-lg shadow-wine-700/25 transition active:scale-[0.98] disabled:opacity-40">
-            <Dices className="h-5 w-5" /> {result ? "Acak lagi" : "Acak sekarang"}
+            <Dices className="h-5 w-5" /> {result ? "Shuffle again" : "Shuffle now"}
           </button>
           {result && (
             <div className="flex gap-3">
               <a href={placeMapsHref(result)} target="_blank" rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-wine-700/10 py-3 font-semibold text-wine-700"><Navigation className="h-4 w-4" /> Get Directions</a>
-              <button onClick={() => onOpen(result)} className="flex-1 rounded-2xl bg-white/70 py-3 font-semibold text-zinc-700 ring-1 ring-white/60">Lihat detail</button>
+              <button onClick={() => onOpen(result)} className="flex-1 rounded-2xl bg-white/70 py-3 font-semibold text-zinc-700 ring-1 ring-white/60">View details</button>
             </div>
           )}
         </div>
