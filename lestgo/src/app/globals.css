@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-wine-900: #590016;
+  --color-wine-700: #800020;
+  --color-wine-600: #a7002a;
+  --color-wine-500: #ce0034;
+}
+
+/* Tombol utama, badge aktif, hero card: selalu gradasi, tidak pernah merah polos */
+@utility bg-brand {
+  background-image: linear-gradient(135deg, #590016 0%, #800020 50%, #a7002a 100%);
+}
+@utility bg-brand-bright {
+  background-image: linear-gradient(135deg, #800020 0%, #a7002a 55%, #ce0034 100%);
+}
+@utility bg-danger {
+  background-image: linear-gradient(270deg, #ce0034 0%, #a7002a 100%);
+}
+/* Efek Liquid Glass */
+@utility glass {
+  background-color: rgb(255 255 255 / 0.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid rgb(255 255 255 / 0.45);
+  box-shadow: 0 8px 32px rgb(89 0 22 / 0.08);
+}
+
+html, body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+body {
+  background-color: #fafafa;
+  background-image:
+    radial-gradient(50rem 28rem at 100% -8%, rgb(128 0 32 / 0.08), transparent 60%),
+    radial-gradient(40rem 30rem at -25% 45%, rgb(206 0 52 / 0.05), transparent 60%);
+  background-attachment: fixed;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

@@ -1,4 +1,4 @@
-# LestGo (setelah refactor PRD)
+# LestGo V3 (Burgundy & Liquid Glass)
 
 Cara pakai (tanpa install apa pun):
 1. Upload semua isi folder ini ke repository GitHub kamu.
@@ -7,4 +7,4 @@ Cara pakai (tanpa install apa pun):
    - NEXT_PUBLIC_SUPABASE_ANON_KEY
 3. Klik Deploy.
 
-Database: jalankan isi file `supabase-setup.sql` di Supabase (SQL Editor).
+Database: jalankan isi file `supabase-setup.sql dan supabase-v3.sql` di Supabase (SQL Editor).
