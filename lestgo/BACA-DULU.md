@@ -1,8 +1,9 @@
 # LestGo
 
-Cara pakai (tanpa install apa pun):
-1. Di GitHub, hapus folder `src` dan `public`, lalu upload semua isi folder ini.
-2. Di Vercel, pastikan 2 Environment Variables terisi:
-   - NEXT_PUBLIC_SUPABASE_URL
-   - NEXT_PUBLIC_SUPABASE_ANON_KEY
-3. Database: jalankan `supabase-v3.sql` di Supabase SQL Editor (hanya sekali, aman diulang).
+Cara update (tanpa menghapus folder apa pun):
+1. Ekstrak ZIP ini.
+2. Di GitHub: Add file > Upload files, seret SEMUA isi folder hasil ekstrak, lalu Commit changes.
+   File yang sama otomatis tertimpa. Tidak perlu menghapus folder.
+3. Tunggu Vercel selesai, lalu refresh keras.
+
+Database: jalankan `supabase-v3.sql` di Supabase SQL Editor hanya jika belum pernah (aman diulang).
