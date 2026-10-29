@@ -1,8 +1,8 @@
-'use client';
-import { useMemo, useState } from "react";
+"use client";
+import { memo, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MONTHS, fmtRange, inRange, monthRange, todayStr, weekRange, type DateRange } from "@/lib/dates";
-import { normName, placeVisitDates } from "@/lib/places";
+import { groupVisited, placeVisitDates } from "@/lib/places";
 import { useData } from "../DataProvider";
 
 type Mode = "all" | "month" | "week" | "range";
@@ -11,7 +11,7 @@ const MODES: { key: Mode; label: string }[] = [
   { key: "week", label: "Weekly" }, { key: "range", label: "Range" },
 ];
 
-export default function StatsCard() {
+function StatsCard() {
   const { places } = useData();
   const [mode, setMode] = useState<Mode>("all");
   const [offset, setOffset] = useState(0);
@@ -29,21 +29,24 @@ export default function StatsCard() {
     return { period: { from: null, to: null }, label: mode === "range" ? "Pick two dates" : "All time" };
   }, [mode, offset, from, to]);
 
+  // Distinct places (same name, same location name, or same spot count as one place)
+  const groups = useMemo(() => groupVisited(places.filter((p) => p.status === "visited")), [places]);
+  const wish = useMemo(() => places.filter((p) => p.status === "wishlist").length, [places]);
+
   const stats = useMemo(() => {
-    const visited = places.filter((p) => p.status === "visited");
-    const wish = places.filter((p) => p.status === "wishlist").length;
     const unbounded = !period.from && !period.to;
-    const allNames = new Set(visited.map((p) => normName(p.title)));
-    const inPeriod = new Set<string>();
-    let events = 0;
-    for (const p of visited) {
-      const dates = placeVisitDates(p);
-      const n = unbounded ? Math.max(1, dates.length) : dates.filter((d) => inRange(d, period)).length;
-      if (n > 0) { events += n; inPeriod.add(normName(p.title)); }
+    let events = 0, doneCount = 0;
+    for (const g of groups) {
+      let n = 0;
+      for (const p of g) {
+        const dates = placeVisitDates(p);
+        n += unbounded ? Math.max(1, dates.length) : dates.filter((d) => inRange(d, period)).length;
+      }
+      if (n > 0) { events += n; doneCount++; }
     }
-    const tracked = wish + allNames.size;
-    return { wish, events, doneCount: inPeriod.size, tracked, pct: tracked ? Math.round((inPeriod.size / tracked) * 100) : 0 };
-  }, [places, period]);
+    const tracked = wish + groups.length;
+    return { events, doneCount, tracked, pct: tracked ? Math.round((doneCount / tracked) * 100) : 0 };
+  }, [groups, wish, period]);
 
   const arrows = mode === "month" || mode === "week";
 
@@ -78,7 +81,7 @@ export default function StatsCard() {
           <p className="text-xs text-zinc-500">Visited places</p>
         </div>
         <div className="rounded-2xl bg-white/60 py-4">
-          <p className="text-3xl font-extrabold text-wine-700">{stats.wish}</p>
+          <p className="text-3xl font-extrabold text-wine-700">{wish}</p>
           <p className="text-xs text-zinc-500">Remaining wishlist</p>
         </div>
       </div>
@@ -94,3 +97,5 @@ export default function StatsCard() {
     </section>
   );
 }
+
+export default memo(StatsCard);

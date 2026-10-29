@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useRef, useState } from "react";
 import { Crosshair, Loader2, Search, X } from "lucide-react";
 import { parseMapsLink } from "@/lib/geo";

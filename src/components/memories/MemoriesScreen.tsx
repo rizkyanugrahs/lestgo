@@ -1,10 +1,11 @@
-'use client';
-import { useMemo, useState } from "react";
+"use client";
+import { memo, useCallback, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { CalendarDays, Camera, Heart, Images, Star, X } from "lucide-react";
 import { fmtRange, fmtShort, inRange, type DateRange } from "@/lib/dates";
 import { placeVisitDates } from "@/lib/places";
 import { styleFor } from "@/lib/categories";
+import type { Place } from "@/lib/types";
 import { useData } from "../DataProvider";
 import CategoryTabs from "../CategoryTabs";
 import PlaceDetail from "../places/PlaceDetail";
@@ -12,12 +13,38 @@ import VisitBadge from "../VisitBadge";
 import FlashbackSlideshow from "./FlashbackSlideshow";
 import DateRangePicker from "./DateRangePicker";
 
+const MemoryCard = memo(function MemoryCard({ p, onOpen }: { p: Place; onOpen: (id: string) => void }) {
+  const { Icon } = styleFor(p.category);
+  return (
+    <button onClick={() => onOpen(p.id)}
+      className="cv-auto relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-zinc-100 text-left shadow-sm transition active:scale-[0.97]">
+      {p.photos[0] ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.photos[0]} alt={p.title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-brand"><Icon className="h-10 w-10 text-white/40" /></div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+      <span className="absolute left-2 top-2 rounded-full border border-white/40 bg-white/85 px-2 py-0.5 text-[10px] font-semibold text-zinc-700">{fmtShort(p.visited_date!)}</span>
+      <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+        {p.rating && <span className="flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span>}
+        {p.photos.length > 1 && <span className="flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"><Images className="h-3 w-3" />{p.photos.length}</span>}
+      </div>
+      <div className="absolute inset-x-0 bottom-0 p-2.5">
+        <VisitBadge count={p.visit_count} className="mb-1" />
+        <p className="line-clamp-2 text-xs font-semibold leading-tight text-white">{p.title}</p>
+      </div>
+    </button>
+  );
+});
+
 export default function MemoriesScreen() {
   const { places, loading, refetch, roomInfo, categories } = useData();
   const [range, setRange] = useState<DateRange>({ from: null, to: null });
   const [picking, setPicking] = useState(false);
   const [category, setCategory] = useState("All");
   const [openId, setOpenId] = useState<string | null>(null);
+  const open = useCallback((id: string) => setOpenId(id), []);
 
   const visited = useMemo(
     () => places.filter((p) => p.status === "visited" && p.visited_date)
@@ -83,30 +110,7 @@ export default function MemoriesScreen() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {filtered.map((p) => {
-              const { Icon } = styleFor(p.category);
-              return (
-                <button key={p.id} onClick={() => setOpenId(p.id)}
-                  className="relative block aspect-[4/5] w-full overflow-hidden rounded-2xl bg-zinc-100 text-left shadow-sm transition active:scale-[0.97]">
-                  {p.photos[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.photos[0]} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-brand"><Icon className="h-10 w-10 text-white/40" /></div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-                  <span className="absolute left-2 top-2 rounded-full border border-white/40 bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-zinc-700 backdrop-blur">{fmtShort(p.visited_date!)}</span>
-                  <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
-                    {p.rating && <span className="flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span>}
-                    {p.photos.length > 1 && <span className="flex items-center gap-0.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"><Images className="h-3 w-3" />{p.photos.length}</span>}
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 p-2.5">
-                    <VisitBadge count={p.visit_count} className="mb-1" />
-                    <p className="line-clamp-2 text-xs font-semibold leading-tight text-white">{p.title}</p>
-                  </div>
-                </button>
-              );
-            })}
+            {filtered.map((p) => <MemoryCard key={p.id} p={p} onOpen={open} />)}
           </div>
         )}
       </div>

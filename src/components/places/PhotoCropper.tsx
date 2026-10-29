@@ -1,16 +1,22 @@
-'use client';
+"use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, RotateCcw, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import BottomSheet from "../BottomSheet";
 
 const OUT_W = 1080;
-const OUT_H = 1350; // 4:5 ratio (like an Instagram feed post)
 
 const clamp = (v: number, m: number) => Math.min(m, Math.max(-m, v));
 
-export default function PhotoCropper({ file, onDone, onCancel }: {
-  file: File; onDone: (f: File) => void; onCancel: () => void;
+/**
+ * aspect "4:5"  -> date photos (like an Instagram feed post).
+ * aspect "1:1"  -> profile photo (shown in a circle).
+ */
+export default function PhotoCropper({ file, onDone, onCancel, aspect = "4:5" }: {
+  file: File; onDone: (f: File) => void; onCancel: () => void; aspect?: "4:5" | "1:1";
 }) {
+  const ratio = aspect === "1:1" ? 1 : 1.25; // height / width
+  const OUT_H = Math.round(OUT_W * ratio);
+
   const url = useMemo(() => URL.createObjectURL(file), [file]);
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
 
@@ -24,7 +30,7 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
   const offRef = useRef({ x: 0, y: 0 });
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<number | null>(null);
-  const h = w * 1.25;
+  const h = w * ratio;
 
   useEffect(() => {
     const i = new Image();
@@ -115,11 +121,11 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
   const round = "flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-wine-700 shadow-sm ring-1 ring-white/60 backdrop-blur";
 
   return (
-    <BottomSheet title="Adjust photo (4:5)" onClose={onCancel}>
+    <BottomSheet title={aspect === "1:1" ? "Adjust profile photo" : "Adjust photo (4:5)"} onClose={onCancel}>
       <div className="space-y-4">
         <div
           ref={boxRef}
-          className="relative mx-auto aspect-[4/5] w-full touch-none select-none overflow-hidden rounded-2xl bg-zinc-900"
+          className={`relative mx-auto w-full touch-none select-none overflow-hidden bg-zinc-900 ${aspect === "1:1" ? "aspect-square max-w-xs rounded-full" : "aspect-[4/5] rounded-2xl"}`}
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId);
             pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -143,7 +149,7 @@ export default function PhotoCropper({ file, onDone, onCancel }: {
           ) : (
             <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-white/70" /></div>
           )}
-          <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/40" />
+          <div className={`pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/40 ${aspect === "1:1" ? "rounded-full" : "rounded-2xl"}`} />
         </div>
         <p className="text-center text-xs text-zinc-400">Drag to move, pinch or use the slider to zoom.</p>
 
