@@ -43,7 +43,7 @@ export default function ProfileScreen() {
           <Settings className="h-4 w-4" /> Settings
         </button>
         <div className="text-center">
-          <p className="text-xs text-zinc-400">Created by Kiky · Built for my girlfriend</p>
+          <p className="text-xs text-zinc-400">Created by Kiky - Especially for my girlfriend</p>
           <p className="mt-0.5 text-[11px] text-zinc-300">Version {APP_VERSION}</p>
         </div>
       </div>
