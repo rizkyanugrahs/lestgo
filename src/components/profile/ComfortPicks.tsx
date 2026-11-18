@@ -1,7 +1,7 @@
 "use client";
 import { memo, useCallback, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Dices, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { fmtShort } from "@/lib/dates";
 import { styleFor } from "@/lib/categories";
 import type { PersonKey, Place } from "@/lib/types";
@@ -9,7 +9,6 @@ import { useData } from "../DataProvider";
 import { ME_LABEL } from "../MeProvider";
 import BottomSheet from "../BottomSheet";
 import VisitBadge from "../VisitBadge";
-import GachaSheet from "./GachaSheet";
 
 const PickRow = memo(function PickRow({ p, onOpen }: { p: Place; onOpen: (p: Place) => void }) {
   const { Icon, bg, text } = styleFor(p.category);
@@ -35,7 +34,6 @@ function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void }) {
   const { places } = useData();
   const [tab, setTab] = useState<PersonKey>("kiky");
   const [all, setAll] = useState(false);
-  const [gacha, setGacha] = useState(false);
 
   // Ranking: highest rating, then most visited, then most recent
   const picks = useMemo(() => places
@@ -71,21 +69,12 @@ function ComfortPicks({ onOpen }: { onOpen: (p: Place) => void }) {
         </div>
       )}
 
-      {/* Minimal spin trigger: one icon + short text */}
-      <div className="flex justify-center">
-        <button onClick={() => setGacha(true)}
-          className="flex items-center gap-2 rounded-full bg-white/80 px-5 py-2.5 text-sm font-semibold text-wine-700 ring-1 ring-wine-700/15 transition active:scale-95">
-          <Dices className="h-4 w-4" /> Spin random place
-        </button>
-      </div>
-
       <AnimatePresence>
         {all && (
           <BottomSheet title={`${ME_LABEL[tab]}'s Picks`} onClose={() => setAll(false)}>
             <div className="space-y-3">{picks.map((p) => <PickRow key={p.id} p={p} onOpen={openFromAll} />)}</div>
           </BottomSheet>
         )}
-        {gacha && <GachaSheet onClose={() => setGacha(false)} onOpen={(p) => { setGacha(false); onOpen(p); }} />}
       </AnimatePresence>
     </section>
   );
