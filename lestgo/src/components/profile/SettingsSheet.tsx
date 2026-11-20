@@ -101,11 +101,9 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
     if (!name || name === old) { setEditing(null); return; }
     if (exists(name, old)) { setError("That category already exists."); return; }
     run(async () => {
-      // every place and folder using the old name is renamed too
+      // every place using the old name is renamed too
       const p = await supabase.from("places").update({ category: name }).eq("room_id", roomId).eq("category", old);
       if (p.error) return p.error.message;
-      const f = await supabase.from("list_folders").update({ category: name }).eq("room_id", roomId).eq("category", old);
-      if (f.error) return f.error.message;
       const msg = await saveSettings({ categories: categories.map((c) => (c === old ? name : c)) });
       if (!msg) { setEditing(null); refetch(); }
       return msg;
@@ -114,7 +112,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
 
   const deleteCategory = (name: string) => {
     if (categories.length <= 1) { setError("Keep at least one category."); return; }
-    if (!window.confirm(`Delete the category "${name}"? Places and folders that use it keep the name, but they will only show up under All.`)) return;
+    if (!window.confirm(`Delete the category "${name}"? Places that use it keep the name, but they will only show up under All.`)) return;
     run(() => saveSettings({ categories: categories.filter((c) => c !== name) }));
   };
 
@@ -180,7 +178,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
             <button onClick={addCategory} disabled={busy || !newCat.trim()} aria-label="Add category"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40"><Plus className="h-5 w-5" /></button>
           </div>
-          <p className="mt-2 text-xs text-zinc-400">Drag the handle to reorder. This order is used in Lists and Memories. Renaming a category also renames it on all places and folders.</p>
+          <p className="mt-2 text-xs text-zinc-400">Drag the handle to reorder. This order is used in Lists and Memories. Renaming a category also renames it on all places.</p>
         </div>
 
         <div className={card}>

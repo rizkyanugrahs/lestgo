@@ -39,3 +39,21 @@ export function linkLabel(url: string): string | null {
   if (u.includes("instagram.com")) return "Instagram";
   return "Link";
 }
+
+/** Pull the place name out of a long Google Maps link (…/maps/place/Coffee+Shop/@…). */
+export function placeNameFromMapsLink(url: string): string | null {
+  const clean = (raw: string) => {
+    try { return decodeURIComponent(raw.replace(/\+/g, " ")).trim(); } catch { return ""; }
+  };
+  const place = url.match(/\/maps\/place\/([^/@?]+)/i);
+  if (place) {
+    const n = clean(place[1]);
+    if (n && !/^-?\d+(\.\d+)?,\s*-?\d/.test(n)) return n;
+  }
+  const q = url.match(/[?&](?:q|query)=([^&]+)/i);
+  if (q) {
+    const n = clean(q[1]);
+    if (n && !/^-?\d+(\.\d+)?,\s*-?\d/.test(n)) return n;
+  }
+  return null;
+}

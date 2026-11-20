@@ -6,4 +6,4 @@ Cara update (tanpa menghapus folder apa pun):
    File yang sama otomatis tertimpa. Tidak perlu menghapus folder.
 3. Tunggu Vercel selesai, lalu refresh keras.
 
-Database: jalankan `supabase-v3.sql` di Supabase SQL Editor hanya jika belum pernah (aman diulang).
+Tidak ada SQL baru untuk versi ini. Tidak ada package baru yang perlu dipasang.

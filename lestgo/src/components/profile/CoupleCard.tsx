@@ -1,10 +1,10 @@
 "use client";
 import { memo } from "react";
-import { Heart } from "lucide-react";
+import { Dices, Heart } from "lucide-react";
 import { togetherSince } from "@/lib/dates";
 import { useData } from "../DataProvider";
 
-function CoupleCard() {
+function CoupleCard({ onSpin }: { onSpin: () => void }) {
   const { roomInfo } = useData();
   const t = roomInfo.anniversary_date ? togetherSince(roomInfo.anniversary_date) : null;
 
@@ -19,7 +19,14 @@ function CoupleCard() {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-brand p-5 text-white shadow-lg shadow-wine-700/30">
       <Heart className="absolute -right-6 -top-6 h-36 w-36 fill-white/10 text-white/10" />
-      <div className="relative flex items-center gap-4">
+
+      {/* Spin random place: icon-only, tucked into the right edge of the card */}
+      <button onClick={onSpin} aria-label="Spin random place"
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur-md transition active:scale-90">
+        <Dices className="h-5 w-5" />
+      </button>
+
+      <div className="relative flex items-center gap-4 pr-12">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/60 bg-white/20">
           {roomInfo.couple_photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element

@@ -1,7 +1,7 @@
 "use client";
 import { memo, useCallback, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { CalendarDays, Camera, Heart, Images, Star, X } from "lucide-react";
+import { CalendarDays, Camera, Heart, Images, Sparkles, Star, X } from "lucide-react";
 import { fmtRange, fmtShort, inRange, type DateRange } from "@/lib/dates";
 import { placeVisitDates } from "@/lib/places";
 import { styleFor } from "@/lib/categories";
@@ -12,6 +12,7 @@ import PlaceDetail from "../places/PlaceDetail";
 import VisitBadge from "../VisitBadge";
 import FlashbackSlideshow from "./FlashbackSlideshow";
 import DateRangePicker from "./DateRangePicker";
+import MonthlyDumpSheet from "./MonthlyDumpSheet";
 
 const MemoryCard = memo(function MemoryCard({ p, onOpen }: { p: Place; onOpen: (id: string) => void }) {
   const { Icon } = styleFor(p.category);
@@ -42,6 +43,7 @@ export default function MemoriesScreen() {
   const { places, loading, refetch, roomInfo, categories } = useData();
   const [range, setRange] = useState<DateRange>({ from: null, to: null });
   const [picking, setPicking] = useState(false);
+  const [dump, setDump] = useState(false);
   const [category, setCategory] = useState("All");
   const [openId, setOpenId] = useState<string | null>(null);
   const open = useCallback((id: string) => setOpenId(id), []);
@@ -73,10 +75,16 @@ export default function MemoriesScreen() {
       <header className="px-5 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Memories</h1>
-          <button onClick={() => setPicking(true)} aria-label="Filter by date"
-            className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 ${range.from ? "bg-brand text-white shadow-md shadow-wine-700/30" : "glass text-wine-700"}`}>
-            <CalendarDays className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setDump(true)} aria-label="Monthly Dump"
+              className="glass flex h-10 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold text-wine-700 transition active:scale-95">
+              <Sparkles className="h-4 w-4" /> Monthly Dump
+            </button>
+            <button onClick={() => setPicking(true)} aria-label="Filter by date"
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition active:scale-95 ${range.from ? "bg-brand text-white shadow-md shadow-wine-700/30" : "glass text-wine-700"}`}>
+              <CalendarDays className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         {range.from && (
           <button onClick={() => setRange({ from: null, to: null })}
@@ -116,6 +124,7 @@ export default function MemoriesScreen() {
       </div>
 
       <AnimatePresence>
+        {dump && <MonthlyDumpSheet onClose={() => setDump(false)} />}
         {picking && <DateRangePicker value={range} onApply={(r) => { setRange(r); setPicking(false); }} onClose={() => setPicking(false)} />}
         {opened && <PlaceDetail place={opened} onClose={() => setOpenId(null)} onChanged={refetch} />}
       </AnimatePresence>

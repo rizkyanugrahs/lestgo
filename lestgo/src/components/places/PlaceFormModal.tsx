@@ -25,20 +25,19 @@ const input = "w-full rounded-2xl border border-zinc-200 bg-white/70 px-4 py-3 o
  * place   = edit this entry.
  * prefill = start a NEW entry using details copied from an earlier visit ("Visit again").
  */
-export default function PlaceFormModal({ mode, place, prefill, defaultCategory, defaultFolderId, onClose, onSaved }: {
-  mode: "wishlist" | "visited"; place?: Place; prefill?: Place; defaultCategory?: string; defaultFolderId?: string | null;
+export default function PlaceFormModal({ mode, place, prefill, defaultCategory, onClose, onSaved }: {
+  mode: "wishlist" | "visited"; place?: Place; prefill?: Place; defaultCategory?: string;
   onClose: () => void; onSaved: () => void;
 }) {
   const roomId = useRoomId();
   const { me } = useMe();
-  const { categories, folders, places } = useData();
+  const { categories, places } = useData();
   const editing = !!place;
   const seed = place ?? prefill;
   const visited = (place?.status ?? mode) === "visited";
 
   const [title, setTitle] = useState(seed?.title ?? "");
   const [description, setDescription] = useState(seed?.description ?? "");
-  const [folderId, setFolderId] = useState<string>(seed ? seed.folder_id ?? "" : defaultFolderId ?? "");
   const [category, setCategory] = useState<string>(seed?.category ?? (defaultCategory && defaultCategory !== "All" ? defaultCategory : categories[0]));
   const [checklist, setChecklist] = useState<ChecklistItem[]>(place?.checklist ?? []);
   const [loc, setLoc] = useState<Loc>({ name: seed?.location_name ?? "", lat: seed?.latitude ?? null, lng: seed?.longitude ?? null, gmaps_url: seed?.gmaps_url ?? "" });
@@ -83,7 +82,6 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
   const pickSuggestion = (p: Place) => {
     setTitle(p.title);
     setCategory(p.category);
-    setFolderId(p.folder_id ?? "");
     setLoc({ name: p.location_name ?? "", lat: p.latitude, lng: p.longitude, gmaps_url: p.gmaps_url ?? "" });
     setSocial(p.social_link ?? "");
     setDescription((d) => d || p.description || "");
@@ -95,7 +93,6 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
     try {
       const base = {
         title: title.trim(), description: description.trim() || null, category,
-        folder_id: folderId || null,
         location_name: loc.name.trim() || null, gmaps_url: loc.gmaps_url.trim() || null,
         latitude: loc.lat, longitude: loc.lng, social_link: social.trim() || null, checklist,
       };
@@ -178,14 +175,6 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
         </div>
 
         <div>
-          <p className={label}>Folder</p>
-          <select value={folderId} onChange={(e) => setFolderId(e.target.value)} className={input}>
-            <option value="">No folder</option>
-            {folders.map((f) => <option key={f.id} value={f.id}>{f.title}</option>)}
-          </select>
-        </div>
-
-        <div>
           <p className={label}>Category</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((c) => {
@@ -202,8 +191,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
         </div>
 
         {visited ? (
-          <>
-            <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
               <div>
                 <p className={label}>Visit date</p>
                 <input type="date" value={visitedDate} max={todayStr()} onChange={(e) => setVisitedDate(e.target.value || todayStr())}
@@ -213,13 +201,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
                 <p className={label}>Rating</p>
                 <Stars value={rating} onChange={setRating} size={26} />
               </div>
-            </div>
-            <div>
-              <p className={label}>Minus notes / downsides (optional)</p>
-              <textarea value={minus} onChange={(e) => setMinus(e.target.value)} rows={2} placeholder="e.g. long queue, hard to park, small portions"
-                className={`${input} resize-none text-sm`} />
-            </div>
-          </>
+          </div>
         ) : (
           <div>
             <p className={label}>Planned visit date (optional)</p>
@@ -259,6 +241,14 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
               </p>
             </div>
           </button>
+        )}
+
+        {visited && (
+          <div>
+            <p className={label}>Minus notes / downsides (optional)</p>
+            <textarea value={minus} onChange={(e) => setMinus(e.target.value)} rows={2} placeholder="e.g. long queue, hard to park, small portions"
+              className={`${input} resize-none text-sm`} />
+          </div>
         )}
 
         {error && <p className="text-sm text-wine-600">{error}</p>}

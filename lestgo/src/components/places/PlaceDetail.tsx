@@ -16,14 +16,13 @@ import PlaceFormModal from "./PlaceFormModal";
 import CompleteVisitModal from "./CompleteVisitModal";
 
 export default function PlaceDetail({ place: p, onClose, onChanged }: { place: Place; onClose: () => void; onChanged: () => void }) {
-  const { folders, places } = useData();
+  const { places } = useData();
   const [editing, setEditing] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [again, setAgain] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
   const { Icon, bg, text } = styleFor(p.category);
   const isVisited = p.status === "visited";
-  const folder = folders.find((f) => f.id === p.folder_id);
 
   // Every visit is its own entry, so the history combines the dates of all entries of this place
   const history = useMemo(() => {
@@ -89,7 +88,6 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${bg} ${text}`}>{p.category}</span>
-            {folder && <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-zinc-500 ring-1 ring-white/60">{folder.title}</span>}
             {isVisited && <span className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white"><Repeat className="h-3 w-3" /> Visited {p.visit_count} {p.visit_count === 1 ? "time" : "times"}</span>}
             {p.is_comfort_pick && <Heart className="h-5 w-5 fill-wine-600 text-wine-600" />}
           </div>
