@@ -49,7 +49,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
   const roomId = useRoomId();
   const { room, unpair } = useRoom();
   const { me, setMe } = useMe();
-  const { roomInfo, categories, saveSettings, refetch } = useData();
+  const { roomInfo, mainCategories: categories, saveSettings, refetch } = useData();
   const fileRef = useRef<HTMLInputElement>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
@@ -83,7 +83,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
   });
 
   const exists = (name: string, except?: string) =>
-    categories.some((c) => c.toLowerCase() === name.toLowerCase() && c !== except);
+    name.toLowerCase() === "nearby" || categories.some((c) => c.toLowerCase() === name.toLowerCase() && c !== except);
 
   const addCategory = () => {
     const name = newCat.trim();
@@ -178,7 +178,7 @@ export default function SettingsSheet({ onClose }: { onClose: () => void }) {
             <button onClick={addCategory} disabled={busy || !newCat.trim()} aria-label="Add category"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand text-white disabled:opacity-40"><Plus className="h-5 w-5" /></button>
           </div>
-          <p className="mt-2 text-xs text-zinc-400">Drag the handle to reorder. This order is used in Lists and Memories. Renaming a category also renames it on all places.</p>
+          <p className="mt-2 text-xs text-zinc-400">Drag the handle to reorder. This order is used in Lists and Memories. Nearby is built in and always comes last. Renaming a category also renames it on all places.</p>
         </div>
 
         <div className={card}>

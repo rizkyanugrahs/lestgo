@@ -30,8 +30,8 @@ export const resolvePhotos = async (items: PhotoItem[], roomId: string): Promise
 };
 
 export function placeError(msg: string) {
-  return /does not exist|schema cache|room_settings|folder_id|minus_notes|visit_count|visit_dates|couple_photo_url|places/i.test(msg)
-    ? "Database not updated yet. Run the supabase-v3.sql file in the Supabase SQL Editor."
+  return /does not exist|schema cache|room_settings|subcategory|nearby_categories|folder_id|minus_notes|visit_count|visit_dates|couple_photo_url|places/i.test(msg)
+    ? "Database not updated yet. Run the supabase-v5.sql file in the Supabase SQL Editor."
     : msg;
 }
 

@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRealtimeQuery } from "@/hooks/useRealtimeQuery";
-import { DEFAULT_CATEGORIES } from "@/lib/categories";
+import { DEFAULT_CATEGORIES, DEFAULT_NEARBY_CATEGORIES, NEARBY } from "@/lib/categories";
 import { normName } from "@/lib/places";
 import type { Place, RoomSettings } from "@/lib/types";
 
@@ -13,7 +13,9 @@ type Ctx = {
   error: string | null;
   refetch: () => void;
   roomInfo: RoomInfo;
-  categories: string[];
+  categories: string[]; // all categories, Nearby last
+  mainCategories: string[]; // your own categories, without Nearby
+  nearbyCategories: string[]; // sub-categories inside Nearby
   saveSettings: (patch: Partial<Omit<RoomSettings, "room_id">>) => Promise<string | null>;
 };
 const DataContext = createContext<Ctx | null>(null);
@@ -30,6 +32,7 @@ export function DataProvider({ roomId, children }: { roomId: string; children: R
     const normalized = pq.data.map((p) => ({
       ...p,
       folder_id: p.folder_id ?? null,
+      subcategory: p.subcategory ?? null,
       photos: p.photos ?? [],
       checklist: p.checklist ?? [],
       minus_notes: p.minus_notes ?? null,
@@ -49,9 +52,15 @@ export function DataProvider({ roomId, children }: { roomId: string; children: R
 
   const settings = sq.data[0] ?? null;
   const settingsCategories = settings?.categories ?? null;
-  const categories = useMemo(
-    () => (settingsCategories && settingsCategories.length ? settingsCategories : DEFAULT_CATEGORIES),
-    [settingsCategories]
+  const mainCategories = useMemo(() => {
+    const own = (settingsCategories ?? []).filter((c) => c !== NEARBY);
+    return own.length ? own : DEFAULT_CATEGORIES;
+  }, [settingsCategories]);
+  const categories = useMemo(() => [...mainCategories, NEARBY], [mainCategories]);
+  const storedNearby = settings?.nearby_categories;
+  const nearbyCategories = useMemo(
+    () => (Array.isArray(storedNearby) ? storedNearby : DEFAULT_NEARBY_CATEGORIES),
+    [storedNearby]
   );
   const anniversary = settings?.anniversary_date ?? null;
   const couplePhoto = settings?.couple_photo_url ?? null;
@@ -75,8 +84,8 @@ export function DataProvider({ roomId, children }: { roomId: string; children: R
 
   // One memoized value: consumers only re-render when something they can see actually changed
   const value = useMemo<Ctx>(
-    () => ({ places, loading, error, refetch, roomInfo, categories, saveSettings }),
-    [places, loading, error, refetch, roomInfo, categories, saveSettings]
+    () => ({ places, loading, error, refetch, roomInfo, categories, mainCategories, nearbyCategories, saveSettings }),
+    [places, loading, error, refetch, roomInfo, categories, mainCategories, nearbyCategories, saveSettings]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

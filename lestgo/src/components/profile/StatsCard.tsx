@@ -3,6 +3,7 @@ import { memo, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MONTHS, fmtRange, inRange, monthRange, todayStr, weekRange, type DateRange } from "@/lib/dates";
 import { groupVisited, placeVisitDates } from "@/lib/places";
+import { NEARBY } from "@/lib/categories";
 import { useData } from "../DataProvider";
 
 type Mode = "all" | "month" | "week" | "range";
@@ -31,7 +32,7 @@ function StatsCard() {
 
   // Distinct places (same name, same location name, or same spot count as one place)
   const groups = useMemo(() => groupVisited(places.filter((p) => p.status === "visited")), [places]);
-  const wish = useMemo(() => places.filter((p) => p.status === "wishlist").length, [places]);
+  const wish = useMemo(() => places.filter((p) => p.status === "wishlist" && p.category !== NEARBY).length, [places]);
 
   const stats = useMemo(() => {
     const unbounded = !period.from && !period.to;

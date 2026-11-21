@@ -5,6 +5,7 @@ export type RoomSettings = {
   anniversary_date: string | null;
   couple_photo_url: string | null;
   categories: string[] | null;
+  nearby_categories?: string[] | null;
 };
 
 export type Folder = { id: string; room_id: string; title: string; description: string | null; category: string; created_at: string };
@@ -20,6 +21,7 @@ export type Place = {
   title: string;
   description: string | null;
   category: string;
+  subcategory?: string | null;
   status: "wishlist" | "visited";
   planned_date: string | null;
   visited_date: string | null;

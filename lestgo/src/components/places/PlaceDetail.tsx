@@ -5,8 +5,8 @@ import { Check, Download, ExternalLink, Heart, Loader2, MapPin, Pencil, Repeat, 
 import { supabase } from "@/lib/supabase";
 import { linkLabel } from "@/lib/geo";
 import { fmtLong, fmtShort } from "@/lib/dates";
-import { downloadPhoto, placeMapsHref, placeVisitDates, resyncAfterRemoval, samePlace } from "@/lib/places";
-import { styleFor } from "@/lib/categories";
+import { downloadPhoto, placeMapsHref, placeVisitDates, resyncAfterRemoval, samePlace, visitEvents } from "@/lib/places";
+import { NEARBY, styleFor } from "@/lib/categories";
 import type { Place } from "@/lib/types";
 import BottomSheet from "../BottomSheet";
 import Stars from "../Stars";
@@ -20,9 +20,16 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
   const [editing, setEditing] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [again, setAgain] = useState(false);
+  const [visiting, setVisiting] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
   const { Icon, bg, text } = styleFor(p.category);
   const isVisited = p.status === "visited";
+  // A Nearby spot (still on the list) has its own two actions: Visit and Done
+  const isNearby = p.category === NEARBY && p.status === "wishlist";
+  const nearbyVisits = useMemo(
+    () => (isNearby ? places.filter((x) => x.status === "visited" && samePlace(x, p)).reduce((n, x) => n + visitEvents(x), 0) : 0),
+    [isNearby, places, p]
+  );
 
   // Every visit is its own entry, so the history combines the dates of all entries of this place
   const history = useMemo(() => {
@@ -41,6 +48,13 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
     if (!window.confirm(`Delete "${p.title}"?`)) return;
     await supabase.from("places").delete().eq("id", p.id);
     if (isVisited) await resyncAfterRemoval(places, p);
+    onChanged(); onClose();
+  };
+
+  // "Done" on a Nearby spot = remove it from the list for good (past visits stay in Memories)
+  const removeNearby = async () => {
+    if (!window.confirm(`Remove "${p.title}" from Nearby for good? Your past visits stay in Memories.`)) return;
+    await supabase.from("places").delete().eq("id", p.id);
     onChanged(); onClose();
   };
 
@@ -88,6 +102,8 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${bg} ${text}`}>{p.category}</span>
+            {p.subcategory && <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-medium text-zinc-600 ring-1 ring-white/60">{p.subcategory}</span>}
+            {isNearby && nearbyVisits > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white"><Repeat className="h-3 w-3" /> Visited {nearbyVisits}x</span>}
             {isVisited && <span className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white"><Repeat className="h-3 w-3" /> Visited {p.visit_count} {p.visit_count === 1 ? "time" : "times"}</span>}
             {p.is_comfort_pick && <Heart className="h-5 w-5 fill-wine-600 text-wine-600" />}
           </div>
@@ -95,6 +111,16 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
           {p.location_name && <p className="mt-0.5 flex items-center gap-1 text-sm text-zinc-500"><MapPin className="h-3.5 w-3.5" />{p.location_name}</p>}
           {isVisited && <div className="mt-2">{p.rating ? <Stars value={p.rating} size={22} /> : <span className="text-sm text-zinc-400">No rating yet</span>}</div>}
         </div>
+
+        {isNearby && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setVisiting(true)} className={`${actionBtn} bg-brand text-white shadow-md shadow-wine-700/25`}><Repeat className="h-4 w-4" /> Visit</button>
+              <button onClick={removeNearby} className={`${actionBtn} bg-white/70 text-zinc-700 ring-1 ring-white/60`}><Check className="h-4 w-4" /> Done</button>
+            </div>
+            <p className="text-center text-xs text-zinc-400">Visit logs a memory and keeps this spot in Nearby. Done removes it for good.</p>
+          </div>
+        )}
 
         {p.is_comfort_pick && p.comfort_pick_by && (
           <p className="rounded-2xl bg-wine-700/10 px-4 py-2.5 text-sm text-wine-700">{ME_LABEL[p.comfort_pick_by]}&apos;s Pick</p>
@@ -150,6 +176,12 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
           )}
         </div>
 
+        {isNearby ? (
+          <div className="flex gap-3">
+            <button onClick={() => setEditing(true)} className={`${actionBtn} bg-white/70 text-zinc-700 ring-1 ring-white/60`}><Pencil className="h-4 w-4" /> Edit</button>
+          </div>
+        ) : (
+          <>
         <div className="flex gap-3">
           {isVisited ? (
             <button onClick={() => setAgain(true)} className={`${actionBtn} bg-wine-700/10 text-wine-700`}><Repeat className="h-4 w-4" /> Visit again</button>
@@ -167,12 +199,15 @@ export default function PlaceDetail({ place: p, onClose, onChanged }: { place: P
             <Trash2 className="h-5 w-5" />{!isVisited && " Delete"}
           </button>
         </div>
+          </>
+        )}
       </div>
 
       <AnimatePresence>
         {editing && <PlaceFormModal mode={p.status} place={p} onClose={() => setEditing(false)} onSaved={onChanged} />}
         {completing && <CompleteVisitModal place={p} onClose={() => setCompleting(false)} onSaved={onChanged} />}
         {again && <PlaceFormModal mode="visited" prefill={p} onClose={() => setAgain(false)} onSaved={onChanged} />}
+        {visiting && <PlaceFormModal mode="visited" nearbyFrom={p} onClose={() => setVisiting(false)} onSaved={onChanged} />}
       </AnimatePresence>
     </BottomSheet>
   );

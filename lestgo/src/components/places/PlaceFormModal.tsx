@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { Heart, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { styleFor } from "@/lib/categories";
+import { NEARBY, styleFor } from "@/lib/categories";
 import { todayStr } from "@/lib/dates";
 import {
   latestDate, normName, photoItemsFrom, placeError, resolvePhotos, syncVisitCount, totalVisitsFor,
@@ -24,21 +24,23 @@ const input = "w-full rounded-2xl border border-zinc-200 bg-white/70 px-4 py-3 o
 /**
  * place   = edit this entry.
  * prefill = start a NEW entry using details copied from an earlier visit ("Visit again").
+ * nearbyFrom = log a visit to a Nearby spot: the spot stays in Nearby, unless you give it 1 star.
  */
-export default function PlaceFormModal({ mode, place, prefill, defaultCategory, onClose, onSaved }: {
-  mode: "wishlist" | "visited"; place?: Place; prefill?: Place; defaultCategory?: string;
+export default function PlaceFormModal({ mode, place, prefill, nearbyFrom, defaultCategory, defaultSubcategory, onClose, onSaved }: {
+  mode: "wishlist" | "visited"; place?: Place; prefill?: Place; nearbyFrom?: Place; defaultCategory?: string; defaultSubcategory?: string;
   onClose: () => void; onSaved: () => void;
 }) {
   const roomId = useRoomId();
   const { me } = useMe();
-  const { categories, places } = useData();
+  const { categories, nearbyCategories, places } = useData();
   const editing = !!place;
-  const seed = place ?? prefill;
+  const seed = place ?? prefill ?? nearbyFrom;
   const visited = (place?.status ?? mode) === "visited";
 
   const [title, setTitle] = useState(seed?.title ?? "");
   const [description, setDescription] = useState(seed?.description ?? "");
   const [category, setCategory] = useState<string>(seed?.category ?? (defaultCategory && defaultCategory !== "All" ? defaultCategory : categories[0]));
+  const [subcategory, setSubcategory] = useState<string>(seed?.subcategory ?? defaultSubcategory ?? "");
   const [checklist, setChecklist] = useState<ChecklistItem[]>(place?.checklist ?? []);
   const [loc, setLoc] = useState<Loc>({ name: seed?.location_name ?? "", lat: seed?.latitude ?? null, lng: seed?.longitude ?? null, gmaps_url: seed?.gmaps_url ?? "" });
   const [social, setSocial] = useState(seed?.social_link ?? "");
@@ -91,11 +93,13 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
   const save = async () => {
     setBusy(true); setError(null);
     try {
-      const base = {
+      const base: Record<string, unknown> = {
         title: title.trim(), description: description.trim() || null, category,
         location_name: loc.name.trim() || null, gmaps_url: loc.gmaps_url.trim() || null,
         latitude: loc.lat, longitude: loc.lng, social_link: social.trim() || null, checklist,
       };
+      // sub-category only applies to Nearby (and is only sent when needed, so other places save without any database change)
+      if (category === NEARBY || place?.subcategory) base.subcategory = category === NEARBY ? subcategory || null : null;
       let extra: Record<string, unknown>;
       let syncTotal: number | null = null;
       if (visited) {
@@ -127,6 +131,8 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
         : await supabase.from("places").insert({ room_id: roomId, ...base, ...extra });
       if (res.error) throw new Error(res.error.message);
       if (syncTotal !== null) await syncVisitCount(places, key, syncTotal);
+      // 1 star = not recommended: the Nearby spot is removed (the visit itself stays in Memories)
+      if (nearbyFrom && visited && !editing && rating === 1) await supabase.from("places").delete().eq("id", nearbyFrom.id);
       onSaved(); onClose();
     } catch (e) {
       setError(placeError(e instanceof Error ? e.message : "Something went wrong."));
@@ -134,7 +140,7 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
     }
   };
 
-  const heading = editing ? "Edit place" : visited ? "Add visited place" : "Add to wishlist";
+  const heading = editing ? "Edit place" : nearbyFrom ? "Log a visit" : visited ? "Add visited place" : "Add to wishlist";
 
   return (
     <BottomSheet title={heading} onClose={onClose}>
@@ -190,6 +196,20 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
           </div>
         </div>
 
+        {category === NEARBY && (
+          <div>
+            <p className={label}>Sub-category</p>
+            <div className="flex flex-wrap gap-2">
+              {["", ...nearbyCategories].map((sc) => (
+                <button key={sc || "none"} type="button" onClick={() => setSubcategory(sc)}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${subcategory === sc ? "bg-brand text-white" : "bg-white/70 text-zinc-600 ring-1 ring-white/60"}`}>
+                  {sc || "None"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {visited ? (
           <div className="flex items-center justify-between gap-3">
               <div>
@@ -202,13 +222,19 @@ export default function PlaceFormModal({ mode, place, prefill, defaultCategory, 
                 <Stars value={rating} onChange={setRating} size={26} />
               </div>
           </div>
-        ) : (
+        ) : category === NEARBY ? null : (
           <div>
             <p className={label}>Planned visit date (optional)</p>
             <input type="date" value={planned} onChange={(e) => setPlanned(e.target.value)}
               className="rounded-2xl border border-zinc-200 bg-white/70 px-3 py-2.5 text-sm outline-none focus:border-wine-600" />
             <p className="mt-1.5 text-xs text-zinc-400">If set, this place shows up on Home as the date gets close.</p>
           </div>
+        )}
+
+        {nearbyFrom && visited && rating === 1 && (
+          <p className="rounded-2xl bg-wine-700/10 px-4 py-2.5 text-xs text-wine-700">
+            1 star means not recommended. After saving, this spot is removed from Nearby (your visit stays in Memories).
+          </p>
         )}
 
         <div>
